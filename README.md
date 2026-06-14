@@ -1,4 +1,4 @@
-# EcoCycle - E-Waste Collection Portal
+# EcoCycle - E-Waste Collection Portal | HTML5 APIs INTEGRATION
 
 ## Project Overview
 
