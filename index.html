@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCycle - E-Waste Collection Portal</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        html{
+            scroll-behavior:smooth;
+        }
+        @keyframes fadeIn{
+        from{
+        opacity:0;
+        transform:scale(0.9);
+        }
+
+        to{
+        opacity:1;
+        transform:scale(1);
+        }
+
+        }
+        .animate-fadeIn{
+        animation:fadeIn .3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800">
+
+<!-- ================= HEADER ================= -->
+
+<header class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
+
+    <nav class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+        <h1 class="text-3xl font-bold">
+            ♻ EcoCycle
+        </h1>
+
+        <ul class="hidden md:flex gap-6 font-medium">
+
+            <li>
+                <a href="#home"
+                   class="hover:text-green-200 transition">
+                   Home
+                </a>
+            </li>
+
+            <li>
+                <a href="#about"
+                   class="hover:text-green-200 transition">
+                   About
+                </a>
+            </li>
+
+            <li>
+                <a href="#services"
+                   class="hover:text-green-200 transition">
+                   Services
+                </a>
+            </li>
+
+            <li>
+                <a href="#gallery"
+                   class="hover:text-green-200 transition">
+                   Gallery
+                </a>
+            </li>
+
+            <li>
+                <a href="#apis"
+                   class="hover:text-green-200 transition">
+                   APIs
+                </a>
+            </li>
+
+            <li>
+                <a href="#contact"
+                   class="hover:text-green-200 transition">
+                   Contact
+                </a>
+            </li>
+
+        </ul>
+
+        <button
+        onclick="openModal()"
+        class="bg-white text-green-700 px-5 py-2 rounded-lg font-semibold hover:scale-105 hover:bg-green-100 transition duration-300">
+
+        Schedule Pickup
+
+        </button>
+
+    </nav>
+
+</header>
+
+<!-- ================= HERO SECTION ================= -->
+
+<section id="home"
+class="bg-gradient-to-r from-green-700 to-emerald-500 text-white">
+
+<div class="max-w-7xl mx-auto px-6 py-24 flex flex-col md:flex-row items-center gap-10">
+
+    <div class="flex-1">
+
+        <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+
+            Recycle Electronics Responsibly
+
+        </h2>
+
+        <p class="text-lg mb-8">
+
+            Join EcoCycle and contribute to a cleaner environment
+            through responsible e-waste disposal and recycling.
+
+        </p>
+
+        <div class="flex flex-wrap gap-4">
+
+            <a href="#services"
+            class="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:scale-105 transition">
+
+            Get Started
+
+            </a>
+
+            <a href="#about"
+            class="border border-white px-6 py-3 rounded-lg hover:bg-white hover:text-green-700 hover:scale-105 transition">
+
+            Learn More
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="flex-1 overflow-hidden rounded-2xl shadow-2xl">
+
+        <img
+        src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"
+
+        class="w-full hover:scale-110 transition duration-700"
+
+        alt="E-Waste">
+
+    </div>
+
+</div>
+
+</section>
+
+<!-- ================= ABOUT SECTION ================= -->
+
+<section id="about" class="py-20">
+
+<div class="max-w-6xl mx-auto px-6">
+
+    <h2 class="text-4xl font-bold text-center mb-8">
+
+        Why E-Waste Recycling Matters
+
+    </h2>
+
+    <p class="text-center text-gray-600 max-w-4xl mx-auto">
+
+        Electronic waste contains hazardous materials that can harm
+        the environment if disposed improperly. Responsible recycling
+        helps recover valuable resources while reducing pollution.
+
+    </p>
+
+</div>
+
+</section>
+
+<!-- ================= BENEFITS SECTION ================= -->
+
+<section class="pb-20">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
+
+        <div class="text-5xl mb-4">🌍</div>
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            Environmental Protection
+
+        </h3>
+
+        <p>
+
+            Reduce pollution and protect ecosystems through
+            responsible disposal practices.
+
+        </p>
+
+    </div>
+
+    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
+
+        <div class="text-5xl mb-4">🔋</div>
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            Resource Recovery
+
+        </h3>
+
+        <p>
+
+            Recover metals and reusable materials from
+            discarded electronics.
+
+        </p>
+
+    </div>
+
+    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
+
+        <div class="text-5xl mb-4">♻️</div>
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            Sustainable Future
+
+        </h3>
+
+        <p>
+
+            Promote environmental sustainability and
+            responsible consumption.
+
+        </p>
+
+    </div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= SERVICES ================= -->
+
+<section id="services" class="bg-white py-20">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-12">
+
+Our Services
+
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            🚚 Doorstep Pickup
+
+        </h3>
+
+        <p>
+
+            Schedule electronic waste pickup from your home.
+
+        </p>
+
+    </div>
+
+    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            📍 Collection Centers
+
+        </h3>
+
+        <p>
+
+            Locate nearby certified recycling facilities.
+
+        </p>
+
+    </div>
+
+    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
+
+        <h3 class="text-2xl font-semibold mb-3">
+
+            🎁 Green Rewards
+
+        </h3>
+
+        <p>
+
+            Earn rewards for participating in recycling drives.
+
+        </p>
+
+    </div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= IMPACT STATS ================= -->
+
+<section class="py-20">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-12">
+
+Our Impact
+
+</h2>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+
+            <h3 id="devicesCounter" class="text-4xl font-bold text-green-700">0</h3>
+        <p>Devices Recycled</p>
+
+        <h3 id="usersCounter" class="text-4xl font-bold text-green-700">0</h3>
+        <p>Users</p>
+
+        <h3 id="wasteCounter" class="text-4xl font-bold text-green-700">0</h3>
+        <p>E-Waste Collected</p>
+
+        <h3 id="carbonCounter" class="text-4xl font-bold text-green-700">0</h3>
+        <p>Carbon Reduction</p>
+
+</div>
+
+</div>
+
+</section>
+<section class="py-20 bg-green-50">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-12">
+Eco Dashboard
+</h2>
+
+<div class="grid md:grid-cols-4 gap-6">
+
+<div class="bg-white p-6 rounded-xl shadow text-center">
+<h3 class="text-3xl font-bold text-green-700" id="pickupCount">0</h3>
+<p>Total Pickups</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow text-center">
+<h3 class="text-3xl font-bold text-blue-700" id="rewardPoints">0</h3>
+<p>Reward Points</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow text-center">
+<h3 class="text-3xl font-bold text-purple-700">12 Tons</h3>
+<p>Waste Collected</p>
+</div>
+
+<div class="bg-white p-6 rounded-xl shadow text-center">
+<h3 class="text-3xl font-bold text-red-700">20%</h3>
+<p>Carbon Saved</p>
+</div>
+
+</div>
+
+</div>
+
+</section>
+<!-- ================= GALLERY ================= -->
+
+<section id="gallery" class="bg-white py-20">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-12">
+
+Gallery
+
+</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+<img
+src="img1.jpg"
+class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
+
+<img
+src="img2.jpg"
+class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
+
+<img
+src="img3.webp"
+class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= TYPOGRAPHY SECTION ================= -->
+
+<section class="py-20 bg-gray-50">
+
+<div class="max-w-4xl mx-auto px-6">
+
+<div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
+
+<h2 class="text-4xl font-bold text-center mb-8">
+
+Understanding E-Waste Recycling
+
+</h2>
+
+<article class="space-y-6 text-gray-700 leading-8">
+
+<p>
+Electronic waste includes discarded electronic devices such as
+mobile phones, batteries, chargers, laptops and computers.
+</p>
+
+<p>
+Proper recycling helps recover valuable materials while reducing
+environmental pollution and supporting sustainability initiatives.
+</p>
+
+<h3 class="text-2xl font-semibold">
+Benefits of E-Waste Recycling
+</h3>
+
+<ul class="list-disc pl-6">
+<li>Reduces pollution</li>
+<li>Conserves natural resources</li>
+<li>Promotes sustainability</li>
+<li>Encourages responsible disposal</li>
+</ul>
+
+</article>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ================= HTML5 APIs START HERE ================= -->
+
+<section id="apis" class="py-20 bg-green-700 text-white">
+
+<div class="max-w-6xl mx-auto text-center">
+
+<h2 class="text-5xl font-bold">
+
+HTML5 APIs Integration
+
+</h2>
+
+<p class="mt-4">
+
+Interactive Features Added
+
+</p>
+
+</div>
+<button
+onclick="sendNotification()"
+class="bg-purple-700 text-white px-6 py-3 rounded-lg">
+
+Enable Notifications
+
+</button>
+</section>
+<!-- ===================================================== -->
+<!-- 1. GEOLOCATION API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-white">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-gray-50 rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-green-700 mb-4">
+📍 Geolocation API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Find your current location and locate nearby e-waste collection centers.
+</p>
+
+<button
+onclick="getLocation()"
+class="bg-green-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition">
+
+Get My Location
+
+</button>
+
+<div id="locationResult"
+class="mt-6 p-4 bg-white rounded-lg shadow">
+Location will appear here...
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 2. LOCAL STORAGE API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-gray-100">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-white rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-blue-700 mb-4">
+💾 Local Storage API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Save your pickup address locally in the browser.
+</p>
+
+<input
+type="text"
+id="pickupAddress"
+placeholder="Enter Pickup Address"
+class="w-full border p-3 rounded-lg mb-4">
+
+<div class="flex flex-wrap gap-4">
+
+<button
+onclick="saveAddress()"
+class="bg-blue-600 text-white px-6 py-3 rounded-lg">
+
+Save Address
+
+</button>
+
+<button
+onclick="loadAddress()"
+class="bg-gray-700 text-white px-6 py-3 rounded-lg">
+
+Load Address
+
+</button>
+
+</div>
+
+<div
+id="savedAddress"
+class="mt-5 p-4 bg-gray-50 rounded-lg">
+
+Saved address will appear here.
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 3. FILE API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-white">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-gray-50 rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-purple-700 mb-4">
+📁 File API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Upload an image of your electronic waste item.
+</p>
+
+<input
+type="file"
+id="fileInput"
+accept="image/*"
+onchange="previewImage(event)"
+class="mb-6">
+
+<div>
+
+<img
+id="imagePreview"
+class="rounded-xl shadow-lg max-h-96 hidden">
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 4. CANVAS API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-gray-100">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-white rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-green-700 mb-4">
+🎨 Canvas API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Drawing the EcoCycle logo using HTML5 Canvas.
+</p>
+
+<canvas
+id="ecoCanvas"
+width="700"
+height="250"
+class="border rounded-lg bg-white">
+</canvas>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 5. DRAG AND DROP API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-white">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-gray-50 rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-orange-700 mb-4">
+🖱️ Drag and Drop API
+</h2>
+
+<p class="mb-8 text-gray-600">
+Drag electronic items into the recycling bin.
+</p>
+
+<div class="flex flex-wrap gap-6 mb-8">
+
+<div
+id="mobile"
+draggable="true"
+ondragstart="drag(event)"
+class="bg-blue-500 text-white px-6 py-4 rounded-lg cursor-move">
+
+📱 Mobile Phone
+
+</div>
+
+<div
+id="battery"
+draggable="true"
+ondragstart="drag(event)"
+class="bg-red-500 text-white px-6 py-4 rounded-lg cursor-move">
+
+🔋 Battery
+
+</div>
+
+<div
+id="laptop"
+draggable="true"
+ondragstart="drag(event)"
+class="bg-green-500 text-white px-6 py-4 rounded-lg cursor-move">
+
+💻 Laptop
+
+</div>
+
+</div>
+
+<div
+id="dropZone"
+ondrop="drop(event)"
+ondragover="allowDrop(event)"
+class="border-4 border-dashed border-green-600 rounded-xl p-12 text-center text-xl bg-green-50">
+
+♻️ Drop Items Here
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 6. AUDIO API -->
+<!-- ===================================================== -->
+
+<!-- AUDIO API -->
+
+<section class="py-20 bg-gray-100">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-white rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-indigo-700 mb-4">
+🎵 Audio API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Learn about sustainable recycling and effective e waste disposal through audio content.
+</p>
+
+<audio
+id="ecoAudio"
+controls
+class="w-full mb-6">
+
+<source
+src="audio.mp3"
+type="audio/mpeg">
+
+</audio>
+
+<div class="flex flex-wrap gap-4">
+
+<button
+onclick="playAudio()"
+class="bg-green-600 text-white px-5 py-2 rounded">
+
+Play
+
+</button>
+
+<button
+onclick="pauseAudio()"
+class="bg-red-600 text-white px-5 py-2 rounded">
+
+Pause
+
+</button>
+
+<button
+onclick="muteAudio()"
+class="bg-gray-700 text-white px-5 py-2 rounded">
+
+Mute
+
+</button>
+
+<button
+onclick="unmuteAudio()"
+class="bg-blue-600 text-white px-5 py-2 rounded">
+
+Unmute
+
+</button>
+
+</div>
+
+<div class="mt-6">
+
+<label class="font-semibold">
+Volume Control
+</label>
+
+<input
+type="range"
+min="0"
+max="1"
+step="0.1"
+value="1"
+oninput="changeVolume(this.value)"
+class="w-full">
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!-- 7. VIDEO API -->
+<!-- ===================================================== -->
+<!-- VIDEO API -->
+
+<section class="py-20 bg-white">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-gray-50 rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-red-700 mb-4">
+🎥 Video API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Watch an awareness video about recycling, effective disposal of E-Waste and sustainability.
+</p>
+
+<video
+id="ecoVideo"
+controls
+class="rounded-xl shadow-lg w-full mb-6">
+
+<source
+src="video.mp4"
+type="video/mp4">
+
+</video>
+
+<div class="flex flex-wrap gap-4">
+
+<button
+onclick="playVideo()"
+class="bg-green-600 text-white px-5 py-2 rounded">
+
+Play
+
+</button>
+
+<button
+onclick="pauseVideo()"
+class="bg-red-600 text-white px-5 py-2 rounded">
+
+Pause
+
+</button>
+
+<button
+onclick="fullscreenVideo()"
+class="bg-purple-600 text-white px-5 py-2 rounded">
+
+Fullscreen
+
+</button>
+
+<button
+onclick="restartVideo()"
+class="bg-orange-600 text-white px-5 py-2 rounded">
+
+Restart
+
+</button>
+
+</div>
+
+<div class="mt-6">
+
+<label class="font-semibold">
+
+Playback Speed
+
+</label>
+
+<select
+onchange="changeSpeed(this.value)"
+class="border p-2 rounded">
+
+<option value="0.5">0.5x</option>
+<option value="1" selected>1x</option>
+<option value="1.5">1.5x</option>
+<option value="2">2x</option>
+
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ===================================================== -->
+<!--  CLIPBOARD API -->
+<!-- ===================================================== -->
+
+<section class="py-20 bg-gray-100">
+
+<div class="max-w-5xl mx-auto px-6">
+
+<div class="bg-white rounded-xl shadow-lg p-8">
+
+<h2 class="text-3xl font-bold text-pink-700 mb-4">
+📋 Clipboard API
+</h2>
+
+<p class="mb-6 text-gray-600">
+Copy pickup information with one click and paste as you like.
+</p>
+
+<input
+type="text"
+id="copyText"
+value="EcoCycle Pickup Request Submitted Successfully"
+class="w-full border p-3 rounded-lg mb-4">
+
+<button
+onclick="copyPickupText()"
+class="bg-pink-600 text-white px-6 py-3 rounded-lg">
+
+Copy Text
+
+</button>
+
+<div
+id="copyStatus"
+class="mt-4 text-green-700 font-semibold">
+</div>
+
+</div>
+
+</div>
+
+</section>
+<!-- ===================================================== -->
+<!-- CONTACT SECTION -->
+<!-- ===================================================== -->
+
+<section id="contact" class="py-20 bg-green-700 text-white">
+
+<div class="max-w-5xl mx-auto px-6 text-center">
+
+<h2 class="text-4xl font-bold mb-6">
+
+Contact EcoCycle
+
+</h2>
+
+<p class="text-lg mb-8">
+
+Join our mission to make e-waste disposal safer and more sustainable.
+
+</p>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+<div class="bg-green-600 p-6 rounded-xl shadow-lg">
+<h3 class="text-2xl font-semibold mb-2">📧 Email</h3>
+<p>support@ecocycle.com</p>
+</div>
+
+<div class="bg-green-600 p-6 rounded-xl shadow-lg">
+<h3 class="text-2xl font-semibold mb-2">📞 Phone</h3>
+<p>+91 9876543210</p>
+</div>
+
+<div class="bg-green-600 p-6 rounded-xl shadow-lg">
+<h3 class="text-2xl font-semibold mb-2">📍 Location</h3>
+<p>Bangalore, India</p>
+</div>
+
+</div>
+
+</div>
+
+</section>
+<!-- ==========================================
+     SCHEDULE PICKUP MODAL
+========================================== -->
+
+<div
+id="pickupModal"
+class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+<div
+class="bg-white rounded-2xl shadow-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 relative animate-fadeIn">
+
+<button
+onclick="closeModal()"
+class="absolute top-3 right-4 text-2xl font-bold text-gray-500 hover:text-red-600">
+
+&times;
+
+</button>
+
+<h2 class="text-3xl font-bold text-green-700 mb-6 text-center">
+
+♻ Schedule E-Waste Pickup
+
+</h2>
+
+<form id="pickupForm" class="space-y-4">
+
+<input
+type="text"
+placeholder="Full Name"
+class="w-full border p-3 rounded-lg">
+
+<input
+type="email"
+placeholder="Email Address"
+class="w-full border p-3 rounded-lg">
+
+<input
+type="tel"
+placeholder="Phone Number"
+class="w-full border p-3 rounded-lg">
+
+<input
+type="date"
+class="w-full border p-3 rounded-lg">
+
+<select
+class="w-full border p-3 rounded-lg">
+
+<option>Select E-Waste Type</option>
+<option>Mobile Phone</option>
+<option>Laptop</option>
+<option>Battery</option>
+<option>Computer Accessories</option>
+<option>Mixed Electronics</option>
+
+</select>
+
+<textarea
+rows="4"
+placeholder="Pickup Address"
+class="w-full border p-3 rounded-lg">
+</textarea>
+
+<button
+type="button"
+onclick="submitPickup()"
+class="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition">
+
+Submit Pickup Request
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+<section class="py-20 bg-white">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<h2 class="text-4xl font-bold text-center mb-12">
+
+Recent Activities
+
+</h2>
+
+<div id="activityLog"
+class="bg-gray-50 p-8 rounded-xl shadow">
+
+No activities yet.
+
+</div>
+
+</div>
+
+</section>
+<!-- ===================================================== -->
+<!-- FOOTER -->
+<!-- ===================================================== -->
+
+<footer class="bg-gray-900 text-white py-10">
+
+<div class="max-w-6xl mx-auto px-6">
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+    <!-- Logo and About -->
+
+    <div>
+
+        <h3 class="text-2xl font-bold mb-4">
+            ♻ EcoCycle
+        </h3>
+
+        <p class="text-gray-400">
+            Promoting sustainable e-waste management through technology,
+            awareness, and responsible recycling practices.
+        </p>
+
+    </div>
+
+    <!-- Quick Links -->
+
+    <div>
+
+        <h3 class="text-xl font-semibold mb-4">
+            Quick Links
+        </h3>
+
+        <ul class="space-y-2 text-gray-400">
+
+            <li>
+                <a href="#home" class="hover:text-white transition">
+                    Home
+                </a>
+            </li>
+
+            <li>
+                <a href="#about" class="hover:text-white transition">
+                    About
+                </a>
+            </li>
+
+            <li>
+                <a href="#services" class="hover:text-white transition">
+                    Services
+                </a>
+            </li>
+
+            <li>
+                <a href="#gallery" class="hover:text-white transition">
+                    Gallery
+                </a>
+            </li>
+
+            <li>
+                <a href="#apis" class="hover:text-white transition">
+                    HTML5 APIs
+                </a>
+            </li>
+
+            <li>
+                <a href="#contact" class="hover:text-white transition">
+                    Contact
+                </a>
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- Contact -->
+
+    <div>
+
+        <h3 class="text-xl font-semibold mb-4">
+            Contact
+        </h3>
+
+        <p class="text-gray-400">
+            📧 ecocycle@example.com
+        </p>
+
+        <p class="text-gray-400 mt-2">
+            📞 +91 98765 43210
+        </p>
+
+        <p class="text-gray-400 mt-2">
+            📍 Bangalore, India
+        </p>
+
+    </div>
+
+</div>
+
+<hr class="border-gray-700 my-8">
+
+<div class="text-center text-gray-500">
+
+    © 2026 EcoCycle | E-Waste Collection Portal | Developed using HTML5, Tailwind CSS, HTML5 APIs, Javascript
+
+</div>
+
+</div>
+
+</footer>
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT SECTION -->
+<!-- ===================================================== -->
+
+<script>
+
+/* ==========================================
+   GEOLOCATION API
+========================================== */
+
+function getLocation(){
+
+    const output = document.getElementById("locationResult");
+
+    if(navigator.geolocation){
+
+        navigator.geolocation.getCurrentPosition(
+
+            function(position){
+
+                output.innerHTML = `
+                <strong>Latitude:</strong> ${position.coords.latitude}<br>
+                <strong>Longitude:</strong> ${position.coords.longitude}
+                `;
+
+            },
+
+            function(){
+
+                output.innerHTML =
+                "Unable to retrieve location.";
+            }
+
+        );
+
+    }
+
+    else{
+
+        output.innerHTML =
+        "Geolocation not supported.";
+
+    }
+
+}
+
+/* ==========================================
+   LOCAL STORAGE API
+========================================== */
+
+function saveAddress(){
+
+    const address =
+    document.getElementById("pickupAddress").value;
+
+    localStorage.setItem(
+        "pickupAddress",
+        address
+    );
+
+    alert("Address Saved Successfully!");
+
+}
+
+function loadAddress(){
+
+    const saved =
+    localStorage.getItem("pickupAddress");
+
+    document.getElementById(
+        "savedAddress"
+    ).innerHTML =
+    saved || "No address saved.";
+
+}
+
+/* ==========================================
+   FILE API
+========================================== */
+
+function previewImage(event){
+
+    const file =
+    event.target.files[0];
+
+    if(file){
+
+        const reader =
+        new FileReader();
+
+        reader.onload =
+        function(e){
+
+            const img =
+            document.getElementById(
+                "imagePreview"
+            );
+
+            img.src =
+            e.target.result;
+
+            img.classList.remove(
+                "hidden"
+            );
+
+        };
+
+        reader.readAsDataURL(file);
+
+    }
+
+}
+
+/* ==========================================
+   CANVAS API
+========================================== */
+
+window.onload = function(){
+
+    const canvas =
+    document.getElementById(
+        "ecoCanvas"
+    );
+
+    const ctx =
+    canvas.getContext("2d");
+
+    /* Green Circle */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        120,
+        120,
+        70,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+    "#16a34a";
+
+    ctx.fill();
+
+    /* White Recycling Symbol */
+
+    ctx.fillStyle =
+    "white";
+
+    ctx.font =
+    "50px Arial";
+
+    ctx.fillText(
+        "♻",
+        95,
+        140
+    );
+
+    /* EcoCycle Text */
+
+    ctx.fillStyle =
+    "#166534";
+
+    ctx.font =
+    "bold 40px Arial";
+
+    ctx.fillText(
+        "EcoCycle",
+        240,
+        135
+    );
+
+};
+
+/* ==========================================
+   DRAG AND DROP API
+========================================== */
+
+function allowDrop(event){
+
+    event.preventDefault();
+
+}
+
+function drag(event){
+
+    event.dataTransfer.setData(
+        "text",
+        event.target.id
+    );
+
+}
+
+function drop(event){
+
+    event.preventDefault();
+
+    const data =
+    event.dataTransfer.getData(
+        "text"
+    );
+
+    const item =
+    document.getElementById(
+        data
+    );
+
+    event.target.appendChild(
+        item
+    );
+
+}
+
+/* ==========================================
+   CLIPBOARD API
+========================================== */
+
+function copyPickupText(){
+
+    const text =
+    document.getElementById(
+        "copyText"
+    ).value;
+
+    navigator.clipboard
+    .writeText(text)
+    .then(function(){
+
+        document.getElementById(
+            "copyStatus"
+        ).innerHTML =
+        "✔ Text copied successfully!";
+
+    });
+
+}
+/* ==========================================
+   MODAL FUNCTIONS
+========================================== */
+
+function openModal(){
+
+document
+.getElementById("pickupModal")
+.classList.remove("hidden");
+
+document
+.getElementById("pickupModal")
+.classList.add("flex");
+
+}
+
+function closeModal(){
+
+document
+.getElementById("pickupModal")
+.classList.add("hidden");
+
+document
+.getElementById("pickupModal")
+.classList.remove("flex");
+
+}
+
+function submitPickup(){
+
+let pickups=
+localStorage.getItem("pickups");
+
+pickups=pickups?parseInt(pickups):0;
+
+pickups++;
+
+localStorage.setItem("pickups",pickups);
+
+document.getElementById(
+"activityLog"
+).innerHTML+=
+"<p>✔ Pickup Scheduled Successfully</p>";
+let points=
+localStorage.getItem("points");
+
+points=points?parseInt(points):0;
+
+points+=50;
+
+localStorage.setItem("points",points);
+
+document.getElementById("rewardPoints").innerText=points;
+
+alert(
+"Pickup Scheduled Successfully!\nReward Points +50"
+);
+
+closeModal();
+
+}
+/* ==========================================
+   AUDIO API FUNCTIONS
+========================================== */
+
+const audio =
+document.getElementById("ecoAudio");
+
+function playAudio(){
+audio.play();
+}
+
+function pauseAudio(){
+audio.pause();
+}
+
+function muteAudio(){
+audio.muted = true;
+}
+
+function unmuteAudio(){
+audio.muted = false;
+}
+
+function changeVolume(value){
+audio.volume = value;
+}
+
+/* ==========================================
+   VIDEO API FUNCTIONS
+========================================== */
+
+const video =
+document.getElementById("ecoVideo");
+
+function playVideo(){
+video.play();
+}
+
+function pauseVideo(){
+video.pause();
+}
+
+function restartVideo(){
+
+video.currentTime = 0;
+video.play();
+
+}
+
+function fullscreenVideo(){
+
+if(video.requestFullscreen){
+
+video.requestFullscreen();
+
+}
+
+}
+
+function changeSpeed(speed){
+
+video.playbackRate = speed;
+
+}
+function animateCounter(id,target){
+
+let count=0;
+
+const element=document.getElementById(id);
+
+const speed=target/100;
+
+const interval=setInterval(()=>{
+
+count+=speed;
+
+if(count>=target){
+count=target;
+clearInterval(interval);
+}
+
+element.innerText=Math.floor(count);
+
+},20);
+
+}
+
+animateCounter("devicesCounter",15000);
+animateCounter("usersCounter",7500);
+animateCounter("wasteCounter",12);
+animateCounter("carbonCounter",20);
+function sendNotification(){
+
+if(Notification.permission==="granted"){
+
+new Notification(
+"EcoCycle Pickup Reminder"
+);
+
+}
+
+else{
+
+Notification.requestPermission()
+.then(permission=>{
+
+if(permission==="granted"){
+
+new Notification(
+"Notifications Enabled"
+);
+
+}
+
+});
+
+}
+
+}
+</script>
+
+</body>
+</html>
