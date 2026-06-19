@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications API Demo – EcoCycle</title>
+    <meta name="description" content="Web Notifications API demonstration – enable browser push notifications for EcoCycle pickup reminders.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --amber-700: #b45309; --amber-600: #d97706; --amber-500: #f59e0b;
+            --amber-100: #fef3c7; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #451a03 0%, #d97706 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #fde68a; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #78350f 0%, #f59e0b 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--amber-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        /* Permission status */
+        .perm-card { padding: 20px 24px; border-radius: 14px; border: 2px solid; display: flex; align-items: center; gap: 16px; margin-bottom: 20px; transition: all .3s; }
+        .perm-card.default  { background: #fffbeb; border-color: var(--amber-500); }
+        .perm-card.granted  { background: #f0fdf4; border-color: var(--green-500); }
+        .perm-card.denied   { background: #fee2e2; border-color: #ef4444; }
+        .perm-icon { font-size: 2.5rem; }
+        .perm-title { font-weight: 700; font-size: 1rem; }
+        .perm-sub   { font-size: .85rem; color: var(--gray-600); margin-top: 4px; }
+
+        .input-styled { width: 100%; border: 2px solid var(--gray-200); border-radius: 12px; padding: 12px 16px; font-family: var(--font); font-size: .95rem; color: var(--gray-800); transition: all .2s; outline: none; background: white; }
+        .input-styled:focus { border-color: var(--amber-500); box-shadow: 0 0 0 3px rgba(245,158,11,.15); }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-amber  { background: var(--amber-600); color: white; }
+        .btn-green  { background: var(--green-700); color: white; }
+        .btn-gray   { background: var(--gray-800); color: white; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-row    { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        /* Notification templates */
+        .notif-preview {
+            background: white; border: 1px solid var(--gray-200); border-radius: 14px;
+            padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px;
+            box-shadow: var(--shadow-md); transition: all .25s; cursor: pointer; margin-bottom: 12px;
+        }
+        .notif-preview:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+        .notif-app-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+        .notif-title    { font-weight: 700; font-size: .9rem; color: var(--gray-800); margin-bottom: 3px; }
+        .notif-body     { font-size: .82rem; color: var(--gray-600); line-height: 1.4; }
+        .notif-time     { font-size: .75rem; color: var(--gray-400); margin-top: 4px; }
+        .notif-fire-btn { margin-left: auto; background: var(--amber-600); color: white; border: none; border-radius: 8px; padding: 6px 14px; font-size: .78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .2s; flex-shrink: 0; font-family: var(--font); }
+        .notif-fire-btn:hover { background: var(--amber-700); }
+
+        /* Scheduler */
+        .schedule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+        @media (max-width: 500px) { .schedule-grid { grid-template-columns: 1fr; } }
+
+        /* Log */
+        .log-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--gray-50); border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--gray-200); font-size: .85rem; animation: logIn .3s ease; }
+        @keyframes logIn { from { opacity: 0; transform: translateX(-8px); } to { opacity:1; transform:none; } }
+        .log-time { font-size: .75rem; color: var(--gray-400); margin-left: auto; white-space: nowrap; }
+
+        .info-box { background: linear-gradient(135deg, var(--amber-100), #fffbeb); border: 1px solid #fde68a; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--amber-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--amber-100); color: var(--amber-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">🔔 HTML5 API Demo</div>
+    <h1>Notifications API</h1>
+    <p>Enable browser push notifications to receive pickup reminders, reward alerts, and eco-news from EcoCycle in real time.</p>
+</div>
+
+<main>
+
+    <!-- Permission Panel -->
+    <div class="card">
+        <div class="card-title">🔐 Notification Permission</div>
+        <p class="card-desc">Browser notifications require your permission. Click "Request Permission" to allow EcoCycle to send you notifications.</p>
+
+        <div class="perm-card default" id="permCard">
+            <div class="perm-icon" id="permIcon">🔔</div>
+            <div>
+                <div class="perm-title" id="permTitle">Permission Not Yet Requested</div>
+                <div class="perm-sub"  id="permSub">Click the button below to allow browser notifications from EcoCycle.</div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-amber" id="requestBtn" onclick="requestPermission()">🔔 Request Permission</button>
+            <button class="btn btn-gray"  onclick="checkPermission()">🔍 Check Status</button>
+        </div>
+    </div>
+
+    <!-- Notification Templates -->
+    <div class="card">
+        <div class="card-title">📬 Notification Templates</div>
+        <p class="card-desc">Preview and fire different notification types that EcoCycle would send. Click the "Fire" button to trigger each one.</p>
+
+        <div class="notif-preview" onclick="fireNotif('pickup')">
+            <div class="notif-app-icon" style="background:#dcfce7">🚚</div>
+            <div style="flex:1">
+                <div class="notif-title">♻ EcoCycle – Pickup Confirmed!</div>
+                <div class="notif-body">Your pickup is scheduled for tomorrow, 10AM–12PM. Driver will call 30 mins before arrival.</div>
+                <div class="notif-time">Just now · EcoCycle</div>
+            </div>
+            <button class="notif-fire-btn" onclick="event.stopPropagation();fireNotif('pickup')">🔔 Fire</button>
+        </div>
+
+        <div class="notif-preview" onclick="fireNotif('reward')">
+            <div class="notif-app-icon" style="background:#fef3c7">🎁</div>
+            <div style="flex:1">
+                <div class="notif-title">🎁 You Earned 50 Reward Points!</div>
+                <div class="notif-body">Thanks for your e-waste pickup! You now have 200 EcoCycle Points. Redeem for eco-products.</div>
+                <div class="notif-time">Just now · EcoCycle</div>
+            </div>
+            <button class="notif-fire-btn" onclick="event.stopPropagation();fireNotif('reward')">🔔 Fire</button>
+        </div>
+
+        <div class="notif-preview" onclick="fireNotif('reminder')">
+            <div class="notif-app-icon" style="background:#dbeafe">📅</div>
+            <div style="flex:1">
+                <div class="notif-title">📅 Pickup Reminder</div>
+                <div class="notif-body">Your EcoCycle pickup is tomorrow at 10AM. Please keep your e-waste items ready at the doorstep.</div>
+                <div class="notif-time">Just now · EcoCycle</div>
+            </div>
+            <button class="notif-fire-btn" onclick="event.stopPropagation();fireNotif('reminder')">🔔 Fire</button>
+        </div>
+
+        <div class="notif-preview" onclick="fireNotif('alert')">
+            <div class="notif-app-icon" style="background:#fce7f3">🌍</div>
+            <div style="flex:1">
+                <div class="notif-title">🌍 Eco Alert — Drive this Weekend!</div>
+                <div class="notif-body">Free e-waste collection drive in Whitefield this Saturday 9AM–5PM. Bring any electronics!</div>
+                <div class="notif-time">Just now · EcoCycle</div>
+            </div>
+            <button class="notif-fire-btn" onclick="event.stopPropagation();fireNotif('alert')">🔔 Fire</button>
+        </div>
+    </div>
+
+    <!-- Custom Notification -->
+    <div class="card">
+        <div class="card-title">✏️ Custom Notification</div>
+        <p class="card-desc">Create and fire your own custom notification by filling in the fields below.</p>
+
+        <div style="display:grid;gap:12px;margin-bottom:16px">
+            <input type="text" id="customTitle" class="input-styled" placeholder="Notification Title (e.g. Pickup Reminder)" value="EcoCycle Alert">
+            <input type="text" id="customBody"  class="input-styled" placeholder="Notification Body text..." value="Your e-waste pickup is confirmed for tomorrow!">
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-amber" onclick="fireCustom()">🔔 Fire Custom Notification</button>
+        </div>
+    </div>
+
+    <!-- Scheduled Notifications -->
+    <div class="card">
+        <div class="card-title">⏰ Scheduled Notification</div>
+        <p class="card-desc">Set a timer to receive a notification after a delay — simulating a scheduled pickup reminder.</p>
+
+        <div class="schedule-grid">
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px">⏱ Delay</label>
+                <select id="delaySelect" class="input-styled" style="cursor:pointer">
+                    <option value="5000">5 seconds</option>
+                    <option value="10000">10 seconds</option>
+                    <option value="30000">30 seconds</option>
+                    <option value="60000">1 minute</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:6px">📝 Message</label>
+                <input type="text" id="schedMsg" class="input-styled" value="Time to schedule your next e-waste pickup!">
+            </div>
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-purple" onclick="scheduleNotif()">⏰ Schedule Notification</button>
+        </div>
+        <div id="schedStatus" style="margin-top:12px;font-size:.9rem;color:var(--amber-600);font-weight:600"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+        <div class="card-title">📋 Notification Log</div>
+        <p class="card-desc">All notifications fired in this session are logged here with timestamps.</p>
+        <div id="notifLog"><div style="color:var(--gray-400);font-size:.9rem">No notifications fired yet.</div></div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How the Notifications API Works Here</h4>
+        <p>We first call <code>Notification.requestPermission()</code> to get user consent — it returns a Promise resolving to <code>'granted'</code>, <code>'denied'</code>, or <code>'default'</code>. Once granted, we create notifications with <code>new Notification(title, { body, icon, badge, tag })</code>. We handle click events on notifications with <code>notification.onclick</code>. The <code>Notification.permission</code> property lets us check the current status without prompting again. Permissions are per-origin and persist across sessions.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Notifications API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+const notifData = {
+    pickup:   { title: '♻ EcoCycle – Pickup Confirmed!',        body: 'Your pickup is scheduled for tomorrow, 10AM–12PM. Driver will call 30 mins before arrival.' },
+    reward:   { title: '🎁 You Earned 50 Reward Points!',       body: 'Thanks for your e-waste pickup! You now have 200 EcoCycle Points. Redeem for eco-products.' },
+    reminder: { title: '📅 EcoCycle Pickup Reminder',           body: 'Your pickup is tomorrow at 10AM. Please keep your e-waste items ready at the doorstep.' },
+    alert:    { title: '🌍 Eco Alert — Collection Drive!',      body: 'Free e-waste collection drive in Whitefield this Saturday 9AM–5PM. Bring any electronics!' },
+};
+
+window.addEventListener('load', checkPermission);
+
+function checkPermission() {
+    if (!('Notification' in window)) {
+        setPermCard('denied', '❌', 'Not Supported', 'Your browser does not support the Notifications API.');
+        return;
+    }
+    const p = Notification.permission;
+    if (p === 'granted')  setPermCard('granted',  '✅', 'Permission Granted',  'EcoCycle can send you browser notifications.');
+    else if (p === 'denied') setPermCard('denied', '❌', 'Permission Denied',  'You blocked notifications. Please reset in browser site settings.');
+    else                  setPermCard('default',  '🔔', 'Permission Not Yet Requested', 'Click "Request Permission" to allow notifications.');
+}
+
+function setPermCard(state, icon, title, sub) {
+    document.getElementById('permCard').className  = 'perm-card ' + state;
+    document.getElementById('permIcon').textContent  = icon;
+    document.getElementById('permTitle').textContent = title;
+    document.getElementById('permSub').textContent   = sub;
+}
+
+function requestPermission() {
+    if (!('Notification' in window)) { alert('Notifications not supported in this browser.'); return; }
+    Notification.requestPermission().then(perm => {
+        checkPermission();
+        if (perm === 'granted') {
+            new Notification('✅ EcoCycle Notifications Enabled!', {
+                body: 'You will now receive pickup reminders and eco alerts.',
+            });
+            addLog('Permission granted — notifications enabled.');
+        } else {
+            addLog('Permission ' + perm + '.');
+        }
+    });
+}
+
+function fireNotif(type) {
+    if (Notification.permission !== 'granted') {
+        alert('Please grant notification permission first!'); return;
+    }
+    const d = notifData[type];
+    const n = new Notification(d.title, { body: d.body, tag: 'ecocycle-' + type });
+    n.onclick = () => { window.focus(); n.close(); };
+    addLog('Fired: ' + d.title);
+}
+
+function fireCustom() {
+    if (Notification.permission !== 'granted') { alert('Please grant notification permission first!'); return; }
+    const title = document.getElementById('customTitle').value || 'EcoCycle Alert';
+    const body  = document.getElementById('customBody').value  || '';
+    const n = new Notification(title, { body });
+    n.onclick = () => { window.focus(); n.close(); };
+    addLog('Custom fired: ' + title);
+}
+
+function scheduleNotif() {
+    if (Notification.permission !== 'granted') { alert('Please grant notification permission first!'); return; }
+    const delay = parseInt(document.getElementById('delaySelect').value);
+    const msg   = document.getElementById('schedMsg').value || 'EcoCycle reminder!';
+    const secs  = delay / 1000;
+    document.getElementById('schedStatus').textContent = `⏰ Notification scheduled in ${secs} seconds...`;
+    addLog(`Scheduled in ${secs}s: "${msg}"`);
+    setTimeout(() => {
+        new Notification('⏰ EcoCycle Scheduled Reminder', { body: msg });
+        document.getElementById('schedStatus').textContent = '✅ Scheduled notification fired!';
+        addLog('Scheduled notification fired: ' + msg);
+    }, delay);
+}
+
+function addLog(text) {
+    const log = document.getElementById('notifLog');
+    if (log.children[0]?.textContent.includes('No notifications')) log.innerHTML = '';
+    log.insertAdjacentHTML('afterbegin', `<div class="log-item"><span style="font-size:1rem">🔔</span><span>${text}</span><span class="log-time">${new Date().toLocaleTimeString()}</span></div>`);
+}
+</script>
+</body>
+</html>

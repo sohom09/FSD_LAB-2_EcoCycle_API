@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio API Demo – EcoCycle</title>
+    <meta name="description" content="Audio API demonstration – play eco-awareness audio with full controls using the HTML5 Audio API.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --indigo-700: #3730a3; --indigo-600: #4338ca; --indigo-500: #6366f1;
+            --indigo-100: #e0e7ff; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #a5b4fc; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #312e81 0%, #6366f1 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='rgba(255,255,255,0.04)' stroke-width='20'/%3E%3C/svg%3E") repeat; }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--indigo-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        /* Custom Audio Player */
+        .player-card {
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #4338ca);
+            border-radius: 20px; padding: 32px; color: white; position: relative; overflow: hidden;
+        }
+        .player-card::before { content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99,102,241,.3), transparent 70%); border-radius: 50%; }
+        .track-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(99,102,241,.5); animation: spinAlbum 8s linear infinite paused; }
+        .track-icon.playing { animation-play-state: running; }
+        @keyframes spinAlbum { to { transform: rotate(360deg); } }
+        .track-name { text-align: center; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+        .track-artist { text-align: center; font-size: .9rem; opacity: .7; margin-bottom: 24px; }
+
+        /* Progress slider */
+        .progress-wrap { position: relative; margin-bottom: 8px; }
+        .audio-progress {
+            -webkit-appearance: none; width: 100%; height: 6px; border-radius: 50px; outline: none; cursor: pointer;
+            background: rgba(255,255,255,.2);
+        }
+        .audio-progress::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,.4); cursor: pointer;
+        }
+        .time-row { display: flex; justify-content: space-between; font-size: .82rem; opacity: .7; margin-bottom: 20px; }
+
+        /* Control buttons */
+        .controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; }
+        .ctrl-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            background: rgba(255,255,255,.15); color: white; transition: all .2s;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,.25); transform: scale(1.1); }
+        .ctrl-btn.play-btn { width: 64px; height: 64px; background: white; color: var(--indigo-600); font-size: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,.3); }
+        .ctrl-btn.play-btn:hover { transform: scale(1.08); }
+
+        /* Volume row */
+        .vol-row { display: flex; align-items: center; gap: 12px; }
+        .vol-icon { font-size: 1.2rem; cursor: pointer; }
+        .vol-slider {
+            -webkit-appearance: none; flex: 1; height: 4px; border-radius: 50px; outline: none; cursor: pointer;
+            background: rgba(255,255,255,.3); accent-color: white;
+        }
+        .vol-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: white; cursor: pointer;
+        }
+
+        /* EQ visualizer bars (pure CSS animation) */
+        .visualizer { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 48px; margin: 20px 0; }
+        .eq-bar {
+            width: 6px; border-radius: 3px 3px 0 0; background: rgba(255,255,255,.6);
+            animation: eqBounce 0.8s ease-in-out infinite alternate;
+            animation-play-state: paused;
+        }
+        .eq-bar.active { animation-play-state: running; }
+        @keyframes eqBounce { from { height: 6px; } to { height: var(--h, 30px); } }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-indigo { background: var(--indigo-600); color: white; }
+        .btn-gray   { background: var(--gray-800); color: white; }
+        .btn-row    { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        .info-box { background: linear-gradient(135deg, var(--indigo-100), #f5f3ff); border: 1px solid #c7d2fe; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--indigo-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--indigo-100); color: var(--indigo-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">🎵 HTML5 API Demo</div>
+    <h1>Audio API</h1>
+    <p>Control audio playback with full precision — play, pause, seek, volume, speed — all powered by the HTML5 HTMLAudioElement API.</p>
+</div>
+
+<main>
+
+    <!-- Custom Player -->
+    <div class="card">
+        <div class="card-title">🎧 EcoCycle Awareness Player</div>
+        <p class="card-desc">A fully custom-built audio player — no native browser UI — built entirely with JavaScript's HTMLAudioElement API. Learn about e-waste while exploring the API.</p>
+
+        <div class="player-card">
+            <div class="track-icon" id="albumArt">🎵</div>
+            <div class="track-name">E-Waste Awareness Guide</div>
+            <div class="track-artist">EcoCycle Sustainability Series · 2026</div>
+
+            <!-- EQ Visualizer -->
+            <div class="visualizer" id="visualizer"></div>
+
+            <!-- Progress bar -->
+            <input type="range" class="audio-progress" id="seekBar" value="0" min="0" max="100" step="0.1" oninput="seekAudio(this.value)">
+            <div class="time-row">
+                <span id="currentTime">0:00</span>
+                <span id="totalTime">0:00</span>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="ctrl-btn" onclick="rewindAudio()" title="Rewind 10s">⏪</button>
+                <button class="ctrl-btn" onclick="prevTrack()" title="Restart">⏮</button>
+                <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+                <button class="ctrl-btn" onclick="skipAudio()"   title="Skip 10s">⏩</button>
+                <button class="ctrl-btn" id="muteBtn" onclick="toggleMute()" title="Mute">🔊</button>
+            </div>
+
+            <!-- Volume -->
+            <div class="vol-row">
+                <span class="vol-icon" onclick="toggleMute()">🔈</span>
+                <input type="range" class="vol-slider" id="volSlider" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)">
+                <span class="vol-icon">🔊</span>
+            </div>
+        </div>
+
+        <!-- Native fallback -->
+        <div style="margin-top:20px">
+            <div style="font-size:.85rem;font-weight:600;color:var(--gray-600);margin-bottom:8px">Native Browser Controls (fallback)</div>
+            <audio id="ecoAudio" class="w-full" style="width:100%;border-radius:12px" controls>
+                <source src="audio.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+    </div>
+
+    <!-- Speed & Effects -->
+    <div class="card">
+        <div class="card-title">⚡ Playback Controls</div>
+        <p class="card-desc">Fine-tune the audio experience using the JavaScript Audio API's advanced properties.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px">
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:8px">⚡ Playback Speed: <span id="speedVal">1.0x</span></label>
+                <input type="range" min="0.25" max="3" step="0.25" value="1" oninput="setSpeed(this.value)" style="width:100%;accent-color:#4338ca">
+            </div>
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:8px">🔄 Loop Audio</label>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+                    <input type="checkbox" id="loopCheck" onchange="toggleLoop()" style="width:18px;height:18px;accent-color:#4338ca">
+                    <span style="font-size:.9rem">Enable looping</span>
+                </label>
+            </div>
+        </div>
+        <div class="btn-row" style="margin-top:20px">
+            <button class="btn btn-indigo" onclick="togglePlay()">▶ Play / Pause</button>
+            <button class="btn" style="background:#ef4444;color:white" onclick="stopAudio()">⏹ Stop</button>
+            <button class="btn btn-gray" onclick="restartAudio()">↩ Restart</button>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How the Audio API Works Here</h4>
+        <p>We create an <code>HTMLAudioElement</code> using <code>document.getElementById('ecoAudio')</code>. Key properties used: <code>audio.play()</code>, <code>audio.pause()</code>, <code>audio.currentTime</code> for seeking, <code>audio.duration</code> for total length, <code>audio.volume</code> (0–1), <code>audio.muted</code>, <code>audio.playbackRate</code> for speed, and <code>audio.loop</code>. We listen to <code>timeupdate</code> event to sync the progress bar in real-time.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Audio API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+const audio   = document.getElementById('ecoAudio');
+const playBtn = document.getElementById('playBtn');
+const seekBar = document.getElementById('seekBar');
+const albumArt = document.getElementById('albumArt');
+let isPlaying = false;
+
+/* Build EQ visualizer */
+const viz = document.getElementById('visualizer');
+const heights = [20, 35, 28, 42, 18, 38, 30, 44, 22, 36, 26, 40, 16, 34, 28, 42, 20];
+heights.forEach((h, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'eq-bar';
+    bar.style.setProperty('--h', h + 'px');
+    bar.style.animationDuration = (0.5 + i * 0.05) % 0.9 + 0.5 + 's';
+    bar.style.animationDelay = (i * 0.04) + 's';
+    viz.appendChild(bar);
+});
+
+function togglePlay() {
+    if (audio.paused) {
+        audio.play().then(() => {
+            isPlaying = true;
+            playBtn.textContent = '⏸';
+            albumArt.classList.add('playing');
+            document.querySelectorAll('.eq-bar').forEach(b => b.classList.add('active'));
+        }).catch(() => {});
+    } else {
+        audio.pause();
+        isPlaying = false;
+        playBtn.textContent = '▶';
+        albumArt.classList.remove('playing');
+        document.querySelectorAll('.eq-bar').forEach(b => b.classList.remove('active'));
+    }
+}
+
+function stopAudio() {
+    audio.pause(); audio.currentTime = 0;
+    isPlaying = false; playBtn.textContent = '▶';
+    albumArt.classList.remove('playing');
+    document.querySelectorAll('.eq-bar').forEach(b => b.classList.remove('active'));
+}
+
+function restartAudio() { audio.currentTime = 0; if (isPlaying) audio.play(); }
+function rewindAudio()  { audio.currentTime = Math.max(0, audio.currentTime - 10); }
+function skipAudio()    { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10); }
+function prevTrack()    { audio.currentTime = 0; }
+
+function seekAudio(val) { if (!isNaN(audio.duration)) audio.currentTime = (val / 100) * audio.duration; }
+function setVolume(val) { audio.volume = parseFloat(val); updateMuteIcon(); }
+function setSpeed(val)  { audio.playbackRate = parseFloat(val); document.getElementById('speedVal').textContent = parseFloat(val).toFixed(2) + 'x'; }
+function toggleLoop()   { audio.loop = document.getElementById('loopCheck').checked; }
+
+let muted = false;
+function toggleMute() {
+    muted = !muted; audio.muted = muted;
+    document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+}
+function updateMuteIcon() { document.getElementById('muteBtn').textContent = audio.muted ? '🔇' : '🔊'; }
+
+function fmt(s) {
+    if (isNaN(s)) return '0:00';
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+}
+
+audio.addEventListener('timeupdate', () => {
+    if (!isNaN(audio.duration)) {
+        seekBar.value = (audio.currentTime / audio.duration) * 100;
+        document.getElementById('currentTime').textContent = fmt(audio.currentTime);
+    }
+});
+audio.addEventListener('loadedmetadata', () => {
+    document.getElementById('totalTime').textContent = fmt(audio.duration);
+});
+audio.addEventListener('ended', () => {
+    isPlaying = false; playBtn.textContent = '▶';
+    albumArt.classList.remove('playing');
+    document.querySelectorAll('.eq-bar').forEach(b => b.classList.remove('active'));
+});
+</script>
+</body>
+</html>

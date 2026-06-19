@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Storage API Demo – EcoCycle</title>
+    <meta name="description" content="Local Storage API demonstration – persist pickup data in the browser without a server.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --purple-700: #6d28d9; --purple-600: #7c3aed; --purple-500: #8b5cf6;
+            --purple-100: #ede9fe; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+            --gray-400: #9ca3af; --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #3b0764 0%, #7c3aed 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #c4b5fd; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 60%, #8b5cf6 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--purple-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        .input-styled { width: 100%; border: 2px solid var(--gray-200); border-radius: 12px; padding: 12px 16px; font-family: var(--font); font-size: .95rem; color: var(--gray-800); transition: all .2s; outline: none; background: white; }
+        .input-styled:focus { border-color: var(--purple-500); box-shadow: 0 0 0 3px rgba(139,92,246,.15); }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-purple { background: var(--purple-600); color: white; }
+        .btn-gray   { background: var(--gray-800); color: white; }
+        .btn-red    { background: #ef4444; color: white; }
+        .btn-green  { background: var(--green-700); color: white; }
+        .btn-row    { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        .result-box { margin-top: 16px; padding: 16px 20px; background: var(--gray-50); border-radius: 12px; border: 2px solid var(--gray-200); font-size: .9rem; color: var(--gray-600); min-height: 52px; transition: all .3s; }
+        .result-box.success { background: #f0fdf4; border-color: #22c55e; color: #15803d; }
+
+        /* Storage visualizer */
+        .storage-viz { margin-top: 20px; }
+        .storage-item { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--gray-50); border-radius: 12px; border: 1px solid var(--gray-200); margin-bottom: 10px; transition: all .25s; }
+        .storage-item:hover { background: var(--purple-100); border-color: var(--purple-500); }
+        .storage-key { font-weight: 700; font-size: .88rem; color: var(--purple-600); flex: 1; }
+        .storage-val { font-size: .85rem; color: var(--gray-600); flex: 2; word-break: break-all; }
+        .storage-del { background: none; border: none; cursor: pointer; color: #ef4444; font-size: 1.1rem; padding: 4px 8px; border-radius: 6px; transition: all .2s; }
+        .storage-del:hover { background: #fee2e2; }
+        .storage-empty { color: var(--gray-400); font-size: .9rem; text-align: center; padding: 20px; }
+
+        /* Progress bar */
+        .storage-bar-wrap { background: var(--gray-100); border-radius: 50px; height: 10px; overflow: hidden; margin-top: 8px; }
+        .storage-bar { height: 100%; background: linear-gradient(90deg, var(--purple-600), var(--purple-500)); border-radius: 50px; transition: width .5s ease; }
+
+        .info-box { background: linear-gradient(135deg, var(--purple-100), #f5f3ff); border: 1px solid #ddd6fe; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--purple-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: #ede9fe; color: #6d28d9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: #22c55e; text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">💾 HTML5 API Demo</div>
+    <h1>Local Storage API</h1>
+    <p>Persist your pickup details, reward points, and preferences directly in the browser — no server or database required.</p>
+</div>
+
+<main>
+
+    <!-- Save/Load Address -->
+    <div class="card">
+        <div class="card-title">📍 Save Pickup Address</div>
+        <p class="card-desc">Enter and save your pickup address. It will persist even after closing the browser tab — retrieved from <code>localStorage</code>.</p>
+        <input type="text" id="pickupAddress" placeholder="Enter your full pickup address..." class="input-styled" style="margin-bottom:14px">
+        <div class="btn-row">
+            <button class="btn btn-purple" onclick="saveAddress()">💾 Save Address</button>
+            <button class="btn btn-gray"   onclick="loadAddress()">📂 Load Address</button>
+            <button class="btn btn-red"    onclick="clearAddress()">🗑 Clear</button>
+        </div>
+        <div class="result-box" id="addressResult">Saved address will appear here.</div>
+    </div>
+
+    <!-- User Profile -->
+    <div class="card">
+        <div class="card-title">👤 User Profile Storage</div>
+        <p class="card-desc">Save your name and contact for quick pickup scheduling. Data is stored in your browser only.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <input type="text"  id="userName"  placeholder="Full Name"    class="input-styled">
+            <input type="email" id="userEmail" placeholder="Email"        class="input-styled">
+            <input type="tel"   id="userPhone" placeholder="Phone Number" class="input-styled">
+            <input type="text"  id="userCity"  placeholder="City"         class="input-styled">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-purple" onclick="saveProfile()">💾 Save Profile</button>
+            <button class="btn btn-gray"   onclick="loadProfile()">📂 Load Profile</button>
+        </div>
+        <div class="result-box" id="profileResult">Profile data will appear here.</div>
+    </div>
+
+    <!-- Storage Explorer -->
+    <div class="card">
+        <div class="card-title">🔍 Storage Explorer</div>
+        <p class="card-desc">View all keys currently stored in <code>localStorage</code> for this page. You can delete individual keys or clear everything.</p>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div>
+                <div style="font-size:.85rem;color:var(--gray-600)">Storage used</div>
+                <div id="storageUsed" style="font-weight:700;color:var(--purple-600)">Calculating...</div>
+                <div class="storage-bar-wrap" style="width:200px"><div class="storage-bar" id="storageBar" style="width:0%"></div></div>
+            </div>
+            <div class="btn-row">
+                <button class="btn btn-purple" onclick="refreshStorage()">🔄 Refresh</button>
+                <button class="btn btn-red"    onclick="clearAll()">🗑 Clear All</button>
+            </div>
+        </div>
+
+        <div id="storageList">
+            <div class="storage-empty">Click Refresh to load storage keys.</div>
+        </div>
+    </div>
+
+    <!-- Custom Key-Value -->
+    <div class="card">
+        <div class="card-title">⌨️ Custom Key-Value Store</div>
+        <p class="card-desc">Manually set any key-value pair in localStorage and retrieve it — great for understanding the raw API.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <input type="text" id="customKey"   placeholder="Key (e.g. myPreference)" class="input-styled">
+            <input type="text" id="customValue" placeholder="Value (e.g. dark-mode)"  class="input-styled">
+        </div>
+        <div class="btn-row">
+            <button class="btn btn-purple" onclick="setCustom()">💾 setItem()</button>
+            <button class="btn btn-gray"   onclick="getCustom()">📂 getItem()</button>
+            <button class="btn btn-red"    onclick="removeCustom()">🗑 removeItem()</button>
+        </div>
+        <div class="result-box" id="customResult">Output will appear here.</div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How Local Storage API Works Here</h4>
+        <p>The Web Storage API provides <code>localStorage.setItem(key, value)</code> to save data, <code>localStorage.getItem(key)</code> to retrieve it, <code>localStorage.removeItem(key)</code> to delete a key, and <code>localStorage.clear()</code> to wipe everything. Data is stored as strings — objects must be serialized with <code>JSON.stringify()</code> and parsed with <code>JSON.parse()</code>. Storage limit is typically 5–10 MB per origin.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Local Storage API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+/* === Address === */
+function saveAddress() {
+    const val = document.getElementById('pickupAddress').value.trim();
+    if (!val) { showResult('addressResult', '⚠️ Please enter an address.', false); return; }
+    localStorage.setItem('eco_pickupAddress', val);
+    showResult('addressResult', `✅ Address saved: "${val}"`, true);
+    refreshStorage();
+}
+function loadAddress() {
+    const saved = localStorage.getItem('eco_pickupAddress');
+    if (saved) { document.getElementById('pickupAddress').value = saved; showResult('addressResult', `📍 Loaded: "${saved}"`, true); }
+    else showResult('addressResult', '❌ No address found in storage.', false);
+}
+function clearAddress() {
+    localStorage.removeItem('eco_pickupAddress');
+    document.getElementById('pickupAddress').value = '';
+    showResult('addressResult', '🗑 Address cleared from storage.', false);
+    refreshStorage();
+}
+
+/* === Profile === */
+function saveProfile() {
+    const profile = {
+        name:  document.getElementById('userName').value,
+        email: document.getElementById('userEmail').value,
+        phone: document.getElementById('userPhone').value,
+        city:  document.getElementById('userCity').value,
+    };
+    localStorage.setItem('eco_userProfile', JSON.stringify(profile));
+    showResult('profileResult', `✅ Profile saved for <strong>${profile.name || 'User'}</strong>`, true);
+    refreshStorage();
+}
+function loadProfile() {
+    const raw = localStorage.getItem('eco_userProfile');
+    if (!raw) { showResult('profileResult', '❌ No profile found in storage.', false); return; }
+    const p = JSON.parse(raw);
+    document.getElementById('userName').value  = p.name  || '';
+    document.getElementById('userEmail').value = p.email || '';
+    document.getElementById('userPhone').value = p.phone || '';
+    document.getElementById('userCity').value  = p.city  || '';
+    showResult('profileResult', `✅ Profile loaded: <strong>${p.name}</strong> — ${p.email} — ${p.phone} — ${p.city}`, true);
+}
+
+/* === Storage Explorer === */
+function refreshStorage() {
+    const list = document.getElementById('storageList');
+    const keys = Object.keys(localStorage);
+    if (keys.length === 0) { list.innerHTML = '<div class="storage-empty">LocalStorage is empty.</div>'; }
+    else {
+        list.innerHTML = keys.map(k => `
+            <div class="storage-item">
+                <span class="storage-key">${k}</span>
+                <span class="storage-val">${(localStorage.getItem(k) || '').substring(0,80)}${localStorage.getItem(k)?.length > 80 ? '...' : ''}</span>
+                <button class="storage-del" onclick="deleteKey('${k}')" title="Delete">🗑</button>
+            </div>`).join('');
+    }
+    // Calculate size
+    let total = 0;
+    for (let k of keys) total += (k.length + (localStorage.getItem(k) || '').length) * 2;
+    const kb = (total / 1024).toFixed(2);
+    document.getElementById('storageUsed').textContent = `${kb} KB / ~5120 KB`;
+    document.getElementById('storageBar').style.width = Math.min((total / (5 * 1024 * 1024)) * 100, 100) + '%';
+}
+function deleteKey(key) { localStorage.removeItem(key); refreshStorage(); }
+function clearAll() {
+    if (confirm('Clear ALL localStorage data? This cannot be undone.')) { localStorage.clear(); refreshStorage(); }
+}
+
+/* === Custom KV === */
+function setCustom() {
+    const k = document.getElementById('customKey').value.trim();
+    const v = document.getElementById('customValue').value.trim();
+    if (!k) { showResult('customResult', '⚠️ Please enter a key.', false); return; }
+    localStorage.setItem(k, v);
+    showResult('customResult', `✅ localStorage.setItem("<strong>${k}</strong>", "<strong>${v}</strong>")`, true);
+    refreshStorage();
+}
+function getCustom() {
+    const k = document.getElementById('customKey').value.trim();
+    if (!k) { showResult('customResult', '⚠️ Please enter a key to get.', false); return; }
+    const v = localStorage.getItem(k);
+    showResult('customResult', v !== null ? `📂 localStorage.getItem("<strong>${k}</strong>") → "<strong>${v}</strong>"` : `❌ Key "<strong>${k}</strong>" not found.`, v !== null);
+}
+function removeCustom() {
+    const k = document.getElementById('customKey').value.trim();
+    if (!k) { showResult('customResult', '⚠️ Please enter a key to remove.', false); return; }
+    localStorage.removeItem(k);
+    showResult('customResult', `🗑 localStorage.removeItem("<strong>${k}</strong>") — Done.`, false);
+    refreshStorage();
+}
+
+function showResult(id, msg, success) {
+    const el = document.getElementById(id);
+    el.innerHTML = msg;
+    el.className = 'result-box' + (success ? ' success' : '');
+}
+
+window.addEventListener('load', refreshStorage);
+</script>
+</body>
+</html>

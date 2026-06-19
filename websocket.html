@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket API Demo – EcoCycle</title>
+    <meta name="description" content="WebSocket API demonstration – real-time bidirectional communication for e-waste pickup updates.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --cyan-700: #0e7490; --cyan-600: #0891b2; --cyan-500: #06b6d4;
+            --cyan-100: #cffafe; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #083344 0%, #0891b2 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #67e8f9; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #164e63 0%, #06b6d4 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 60px), repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 60px); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 960px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--cyan-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        /* Connection status bar */
+        .conn-bar {
+            display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+            border-radius: 12px; border: 2px solid; margin-bottom: 20px; transition: all .3s;
+        }
+        .conn-bar.disconnected { background: #f9fafb; border-color: var(--gray-200); }
+        .conn-bar.connecting   { background: #fffbeb; border-color: #f59e0b; }
+        .conn-bar.connected    { background: #f0fdf4; border-color: #22c55e; }
+        .conn-bar.error        { background: #fee2e2; border-color: #ef4444; }
+        .conn-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .conn-dot.disconnected { background: var(--gray-400); }
+        .conn-dot.connecting   { background: #f59e0b; animation: pulse .8s ease-in-out infinite; }
+        .conn-dot.connected    { background: #22c55e; animation: pulse 2s ease-in-out infinite; }
+        .conn-dot.error        { background: #ef4444; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+        .conn-label { font-weight: 700; font-size: .9rem; }
+        .conn-meta  { font-size: .8rem; color: var(--gray-600); margin-left: auto; }
+
+        /* Chat window */
+        .chat-layout { display: grid; grid-template-columns: 1fr 280px; gap: 20px; }
+        @media (max-width: 700px) { .chat-layout { grid-template-columns: 1fr; } }
+
+        .chat-window {
+            border: 2px solid var(--gray-200); border-radius: 16px; overflow: hidden;
+            display: flex; flex-direction: column; height: 440px;
+        }
+        .chat-header { background: linear-gradient(135deg, #164e63, #0891b2); padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+        .chat-header-title { color: white; font-weight: 700; font-size: .95rem; }
+        .chat-header-sub   { color: rgba(255,255,255,.7); font-size: .75rem; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #f8fafc; scroll-behavior: smooth; }
+        .chat-input-row { padding: 12px; border-top: 2px solid var(--gray-200); display: flex; gap: 8px; background: white; }
+        .chat-input { flex: 1; border: 2px solid var(--gray-200); border-radius: 50px; padding: 10px 16px; font-family: var(--font); font-size: .9rem; outline: none; transition: all .2s; }
+        .chat-input:focus { border-color: var(--cyan-500); box-shadow: 0 0 0 3px rgba(6,182,212,.15); }
+        .chat-send { background: var(--cyan-600); color: white; border: none; border-radius: 50%; width: 42px; height: 42px; font-size: 1.1rem; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .chat-send:hover { background: var(--cyan-700); transform: scale(1.08); }
+        .chat-send:disabled { background: var(--gray-400); cursor: not-allowed; transform: none; }
+
+        /* Message bubbles */
+        .msg { display: flex; flex-direction: column; max-width: 78%; }
+        .msg.sent { align-self: flex-end; align-items: flex-end; }
+        .msg.recv { align-self: flex-start; align-items: flex-start; }
+        .msg.system { align-self: center; align-items: center; max-width: 100%; }
+        .msg-bubble { padding: 10px 14px; border-radius: 18px; font-size: .88rem; line-height: 1.5; }
+        .msg.sent  .msg-bubble { background: linear-gradient(135deg, #0891b2, #06b6d4); color: white; border-bottom-right-radius: 4px; }
+        .msg.recv  .msg-bubble { background: white; color: var(--gray-800); border: 1px solid var(--gray-200); border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+        .msg.system .msg-bubble { background: rgba(6,182,212,.1); color: var(--cyan-700); font-size: .8rem; border-radius: 50px; padding: 6px 14px; border: 1px solid rgba(6,182,212,.2); }
+        .msg-time { font-size: .7rem; color: var(--gray-400); margin-top: 3px; }
+
+        /* Sidebar */
+        .sidebar-card { background: var(--gray-50); border-radius: 14px; border: 1px solid var(--gray-200); padding: 16px; }
+        .sidebar-title { font-weight: 700; font-size: .88rem; color: var(--gray-600); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+
+        /* Stats */
+        .ws-stat { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-200); font-size: .85rem; }
+        .ws-stat:last-child { border-bottom: none; }
+        .ws-stat-val { font-weight: 700; color: var(--cyan-600); }
+
+        /* Quick actions */
+        .quick-btn { display: block; width: 100%; text-align: left; padding: 10px 12px; background: white; border: 1px solid var(--gray-200); border-radius: 8px; cursor: pointer; font-size: .82rem; font-weight: 600; color: var(--gray-700); transition: all .2s; margin-bottom: 6px; font-family: var(--font); }
+        .quick-btn:hover { background: var(--cyan-100); border-color: var(--cyan-500); color: var(--cyan-700); }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-cyan  { background: var(--cyan-600); color: white; }
+        .btn-red   { background: #ef4444; color: white; }
+        .btn-gray  { background: var(--gray-800); color: white; }
+        .btn-row   { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+
+        /* Live updates feed */
+        .feed-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--gray-200); background: white; margin-bottom: 8px; animation: feedSlide .3s ease; }
+        @keyframes feedSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+        .feed-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+        .feed-content { flex: 1; font-size: .88rem; color: var(--gray-700); line-height: 1.4; }
+        .feed-time { font-size: .75rem; color: var(--gray-400); white-space: nowrap; }
+
+        .info-box { background: linear-gradient(135deg, var(--cyan-100), #e0f2fe); border: 1px solid #a5f3fc; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--cyan-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--cyan-100); color: var(--cyan-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">🔌 HTML5 API Demo</div>
+    <h1>WebSocket API</h1>
+    <p>Real-time bidirectional communication — chat with the EcoCycle support bot and receive live pickup updates using the WebSocket API.</p>
+</div>
+
+<main>
+
+    <!-- Connection Control -->
+    <div class="card">
+        <div class="card-title">🔌 WebSocket Connection</div>
+        <p class="card-desc">Connect to the EcoCycle real-time server (simulated echo WebSocket) to send and receive messages instantly — no page refresh needed.</p>
+
+        <div class="conn-bar disconnected" id="connBar">
+            <div class="conn-dot disconnected" id="connDot"></div>
+            <div>
+                <div class="conn-label" id="connLabel">Disconnected</div>
+                <div style="font-size:.75rem;color:var(--gray-600)" id="connDetail">Click Connect to establish a WebSocket connection</div>
+            </div>
+            <div class="conn-meta" id="connMeta">—</div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-cyan" id="connectBtn" onclick="connectWS()">🔌 Connect</button>
+            <button class="btn btn-red"  id="disconnBtn" onclick="disconnectWS()" disabled>⚡ Disconnect</button>
+            <button class="btn btn-gray" onclick="clearChat()">🗑 Clear Chat</button>
+        </div>
+    </div>
+
+    <!-- Live Chat -->
+    <div class="card">
+        <div class="card-title">💬 EcoCycle Support Chat</div>
+        <p class="card-desc">Send messages to the EcoCycle bot. Messages are echoed via WebSocket and the bot responds with eco-related information in real time.</p>
+
+        <div class="chat-layout">
+            <!-- Chat window -->
+            <div class="chat-window">
+                <div class="chat-header">
+                    <div style="font-size:1.5rem">♻️</div>
+                    <div>
+                        <div class="chat-header-title">EcoCycle Support</div>
+                        <div class="chat-header-sub" id="chatStatus">Offline · Connect to chat</div>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="msg system"><div class="msg-bubble">Welcome! Connect to start chatting with EcoCycle Support.</div></div>
+                </div>
+                <div class="chat-input-row">
+                    <input class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="300" onkeydown="if(event.key==='Enter')sendMsg()" disabled>
+                    <button class="chat-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <div class="sidebar-card" style="margin-bottom:14px">
+                    <div class="sidebar-title">📊 Session Stats</div>
+                    <div class="ws-stat"><span>Messages Sent</span><span class="ws-stat-val" id="statSent">0</span></div>
+                    <div class="ws-stat"><span>Messages Recv</span><span class="ws-stat-val" id="statRecv">0</span></div>
+                    <div class="ws-stat"><span>Reconnects</span><span class="ws-stat-val" id="statReconn">0</span></div>
+                    <div class="ws-stat"><span>Latency</span><span class="ws-stat-val" id="statLatency">—</span></div>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sidebar-title">⚡ Quick Messages</div>
+                    <button class="quick-btn" onclick="sendQuick('Hello! I want to schedule a pickup.')">📅 Schedule Pickup</button>
+                    <button class="quick-btn" onclick="sendQuick('Where is the nearest collection center?')">📍 Find Centers</button>
+                    <button class="quick-btn" onclick="sendQuick('How many reward points do I have?')">🎁 Check Points</button>
+                    <button class="quick-btn" onclick="sendQuick('What items can I recycle?')">♻️ Recyclable Items</button>
+                    <button class="quick-btn" onclick="sendQuick('What is e-waste?')">❓ About E-Waste</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Updates Feed -->
+    <div class="card">
+        <div class="card-title">📡 Live Pickup Updates Feed</div>
+        <p class="card-desc">Real-time notifications about pickup assignments, driver locations, and recycling status — streamed via WebSocket.</p>
+
+        <div class="btn-row">
+            <button class="btn btn-cyan" onclick="startLiveFeed()" id="feedBtn">▶ Start Live Feed</button>
+            <button class="btn btn-gray" onclick="stopLiveFeed()"  id="stopFeedBtn" disabled>⏹ Stop Feed</button>
+        </div>
+
+        <div id="liveFeed" style="max-height:300px;overflow-y:auto">
+            <div style="color:var(--gray-400);font-size:.9rem;padding:10px 0">Start the live feed to receive real-time updates...</div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How the WebSocket API Works Here</h4>
+        <p>We create a connection with <code>const ws = new WebSocket('wss://echo.websocket.events')</code>. The four key event handlers are: <code>ws.onopen</code> (connection established), <code>ws.onmessage</code> (data received), <code>ws.onerror</code> (error occurred), and <code>ws.onclose</code> (connection closed). We send data with <code>ws.send(JSON.stringify(data))</code> and close gracefully with <code>ws.close()</code>. WebSocket enables true full-duplex communication — unlike HTTP, the server can push data to the client at any time without a new request.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | WebSocket API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+/* =============================================
+   WEBSOCKET STATE
+============================================= */
+let ws = null;
+let sentCount = 0, recvCount = 0, reconnCount = 0;
+let feedInterval = null;
+let pingInterval = null;
+let connectedAt  = null;
+
+/* =============================================
+   BOT RESPONSES
+============================================= */
+const botReplies = {
+    'schedule':      '📅 Sure! Please share your address and preferred date. We offer same-day pickups in Bangalore Mon–Sat.',
+    'pickup':        '🚚 Pickup can be scheduled for any time between 8AM–7PM. Use the Schedule Pickup button on the main portal!',
+    'center':        '📍 Nearest centers: Whitefield Hub (2.3km), Koramangala (4.1km), Indiranagar (5.7km). All open Mon–Sat.',
+    'nearest':       '📍 Your nearest center is the Whitefield E-Waste Hub, ~2.3 km away. Open 9AM–6PM, Mon–Sat.',
+    'reward':        '🎁 You earn 50 points per pickup! Redeem 500 points for ₹100 off your next eco-product.',
+    'points':        '🎁 You currently have 150 EcoCycle Points. Schedule a pickup to earn 50 more!',
+    'recycle':       '♻️ We accept: mobiles, laptops, tablets, chargers, cables, batteries, TVs, monitors, and computer accessories.',
+    'item':          '♻️ Accepted: phones, laptops, batteries, chargers, TVs, monitors. Not accepted: CRTs, large appliances.',
+    'ewaste':        '🌍 E-waste is discarded electronic equipment. It often contains hazardous materials like lead and mercury. Proper recycling recovers valuable metals and prevents pollution.',
+    'hello':         '👋 Hello! Welcome to EcoCycle Support. How can I help you with your e-waste recycling today?',
+    'hi':            '👋 Hi there! I\'m the EcoCycle Support Bot. Ask me about pickups, centers, rewards, or recycling!',
+    'thanks':        '🙏 You\'re welcome! Together we\'re making the planet cleaner. ♻️',
+    'price':         '💰 EcoCycle pickup is 100% FREE! We even pay you for bulk electronics (10+ kg).',
+    'free':          '✅ Yes, our pickup service is completely free! We also offer reward points for every pickup.',
+    'default':       '🤖 Thanks for your message! I\'m the EcoCycle bot. I can help with pickups, collection centers, reward points, and recyclable items. What would you like to know?'
+};
+
+function getBotReply(msg) {
+    const lower = msg.toLowerCase();
+    for (const [key, reply] of Object.entries(botReplies)) {
+        if (lower.includes(key)) return reply;
+    }
+    return botReplies.default;
+}
+
+/* =============================================
+   WEBSOCKET CONNECTION
+============================================= */
+function connectWS() {
+    setConnState('connecting', 'Connecting...', 'Establishing WebSocket connection...');
+    addSystemMsg('🔌 Attempting to connect to WebSocket server...');
+
+    // Try real echo server first, fall back to simulation
+    try {
+        ws = new WebSocket('wss://echo.websocket.events');
+
+        ws.onopen = () => {
+            connectedAt = Date.now();
+            setConnState('connected', 'Connected', 'wss://echo.websocket.events');
+            document.getElementById('connectBtn').disabled = true;
+            document.getElementById('disconnBtn').disabled = false;
+            document.getElementById('chatInput').disabled  = false;
+            document.getElementById('sendBtn').disabled    = false;
+            document.getElementById('chatStatus').textContent = '🟢 Online · EcoCycle Support';
+            addSystemMsg('✅ WebSocket connection established! You can now send messages.');
+            addBotMsg('👋 Welcome to EcoCycle real-time support! Ask me about pickups, collection centers, reward points, or recyclable items. How can I help?');
+
+            // Ping every 30s to keep connection alive
+            pingInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping', ts: Date.now() }));
+            }, 30000);
+        };
+
+        ws.onmessage = (event) => {
+            recvCount++;
+            document.getElementById('statRecv').textContent = recvCount;
+            // Echo server echoes our messages — parse and handle
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'ping') return; // skip pong
+                if (data.type === 'user_msg') {
+                    // Simulate bot reply after delay
+                    setTimeout(() => addBotMsg(getBotReply(data.text)), 800 + Math.random() * 600);
+                }
+            } catch(e) {
+                // Raw string echo — bot replies
+                if (!event.data.includes('"type":"ping"')) {
+                    try {
+                        const d = JSON.parse(event.data);
+                        if (d.type === 'user_msg') setTimeout(() => addBotMsg(getBotReply(d.text)), 900);
+                    } catch(e2) {}
+                }
+            }
+        };
+
+        ws.onerror = () => { simulateFallback(); };
+        ws.onclose = () => {
+            if (connectedAt) onDisconnected();
+        };
+
+    } catch(e) { simulateFallback(); }
+}
+
+function simulateFallback() {
+    // Fully simulated WebSocket for environments where real WS fails
+    ws = null;
+    connectedAt = Date.now();
+    setConnState('connected', 'Connected (Simulated)', 'wss://ecocycle-demo.local (simulation)');
+    document.getElementById('connectBtn').disabled = true;
+    document.getElementById('disconnBtn').disabled = false;
+    document.getElementById('chatInput').disabled  = false;
+    document.getElementById('sendBtn').disabled    = false;
+    document.getElementById('chatStatus').textContent = '🟢 Online · EcoCycle Support (Simulated)';
+    addSystemMsg('✅ WebSocket connection simulated! The WebSocket API code is fully active.');
+    addBotMsg('👋 Welcome to EcoCycle real-time support! Ask me about pickups, collection centers, reward points, or recyclable items. How can I help?');
+}
+
+function disconnectWS() {
+    if (ws && ws.readyState === WebSocket.OPEN) ws.close();
+    else onDisconnected();
+}
+
+function onDisconnected() {
+    clearInterval(pingInterval);
+    ws = null; connectedAt = null;
+    setConnState('disconnected', 'Disconnected', 'Connection closed');
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('disconnBtn').disabled = true;
+    document.getElementById('chatInput').disabled  = true;
+    document.getElementById('sendBtn').disabled    = true;
+    document.getElementById('chatStatus').textContent = '⭕ Offline · Connect to chat';
+    addSystemMsg('🔌 WebSocket connection closed.');
+}
+
+function setConnState(state, label, detail) {
+    const bar  = document.getElementById('connBar');
+    const dot  = document.getElementById('connDot');
+    const lbl  = document.getElementById('connLabel');
+    const det  = document.getElementById('connDetail');
+    const meta = document.getElementById('connMeta');
+    bar.className = 'conn-bar ' + state;
+    dot.className = 'conn-dot ' + state;
+    lbl.textContent = label;
+    det.textContent = detail;
+    const colors = { disconnected:'#6b7280', connecting:'#f59e0b', connected:'#15803d', error:'#ef4444' };
+    lbl.style.color = colors[state] || '#1f2937';
+    if (state === 'connected') meta.textContent = new Date().toLocaleTimeString();
+}
+
+/* =============================================
+   CHAT FUNCTIONS
+============================================= */
+function sendMsg() {
+    const input = document.getElementById('chatInput');
+    const text  = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    const t1 = Date.now();
+    addUserMsg(text);
+    sentCount++;
+    document.getElementById('statSent').textContent = sentCount;
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'user_msg', text, ts: t1 }));
+    } else {
+        // Simulated
+        setTimeout(() => {
+            const latency = Date.now() - t1;
+            document.getElementById('statLatency').textContent = latency + 'ms';
+            recvCount++;
+            document.getElementById('statRecv').textContent = recvCount;
+            addBotMsg(getBotReply(text));
+        }, 700 + Math.random() * 600);
+    }
+}
+
+function sendQuick(msg) {
+    if (document.getElementById('chatInput').disabled) {
+        alert('Please connect first!'); return;
+    }
+    document.getElementById('chatInput').value = msg;
+    sendMsg();
+}
+
+function addUserMsg(text) {
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML += `<div class="msg sent"><div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${timeNow()}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addBotMsg(text) {
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML += `<div class="msg recv"><div class="msg-bubble">♻️ ${text}</div><div class="msg-time">EcoCycle Bot · ${timeNow()}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addSystemMsg(text) {
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML += `<div class="msg system"><div class="msg-bubble">${text}</div></div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+}
+
+function clearChat() {
+    document.getElementById('chatMessages').innerHTML = '<div class="msg system"><div class="msg-bubble">Chat cleared. Connect to start a new session.</div></div>';
+}
+
+/* =============================================
+   LIVE FEED
+============================================= */
+const feedEvents = [
+    { color: '#22c55e', text: '🚚 Driver assigned for pickup #ECO-2026-1147 · Whitefield area' },
+    { color: '#3b82f6', text: '📍 Driver "Ravi K." is 1.2 km away from your location' },
+    { color: '#f59e0b', text: '🔋 12 kg of batteries received at Koramangala Recycling Centre' },
+    { color: '#8b5cf6', text: '🎁 User "Priya M." earned 150 reward points today' },
+    { color: '#14b8a6', text: '📦 Pickup #ECO-2026-1143 completed · 4.2 kg e-waste recycled' },
+    { color: '#ec4899', text: '📱 15 mobile phones processed at Whitefield Hub today' },
+    { color: '#f97316', text: '⚠️ Collection center at Indiranagar reaching capacity — alternative: HSR Layout' },
+    { color: '#06b6d4', text: '♻️ Monthly target: 45% achieved · 5.4T of 12T recycled this month' },
+    { color: '#22c55e', text: '✅ New pickup request from HSR Layout confirmed for tomorrow' },
+    { color: '#3b82f6', text: '🌍 EcoCycle Bangalore: 300 kg saved from landfill today!' },
+];
+let feedIdx = 0;
+
+function startLiveFeed() {
+    document.getElementById('feedBtn').disabled     = true;
+    document.getElementById('stopFeedBtn').disabled = false;
+    addFeedEvent({ color: '#22c55e', text: '🔌 Live feed connected — receiving real-time updates...' });
+    feedInterval = setInterval(() => {
+        addFeedEvent(feedEvents[feedIdx % feedEvents.length]);
+        feedIdx++;
+    }, 2500);
+}
+
+function stopLiveFeed() {
+    clearInterval(feedInterval); feedInterval = null;
+    document.getElementById('feedBtn').disabled     = false;
+    document.getElementById('stopFeedBtn').disabled = true;
+    addFeedEvent({ color: '#6b7280', text: '⏹ Live feed paused.' });
+}
+
+function addFeedEvent(ev) {
+    const feed = document.getElementById('liveFeed');
+    if (feed.querySelector('[style*="color"]') === null && feed.children.length === 1 && feed.children[0].textContent.includes('Start')) {
+        feed.innerHTML = '';
+    }
+    feed.insertAdjacentHTML('afterbegin', `
+        <div class="feed-item">
+            <div class="feed-dot" style="background:${ev.color}"></div>
+            <div class="feed-content">${ev.text}</div>
+            <div class="feed-time">${timeNow()}</div>
+        </div>`);
+    // Keep last 20 entries
+    while (feed.children.length > 20) feed.lastChild.remove();
+}
+
+function timeNow() { return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }); }
+function escHtml(str) { return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File API Demo – EcoCycle</title>
+    <meta name="description" content="File API demonstration – upload, preview and read e-waste images using the HTML5 File API.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --pink-700: #be185d; --pink-600: #db2777; --pink-500: #ec4899;
+            --pink-100: #fce7f3; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #831843 0%, #db2777 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #fbcfe8; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #9d174d 0%, #ec4899 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; opacity: .3; background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,.03) 20px, rgba(255,255,255,.03) 40px); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--pink-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 3px dashed var(--pink-500); border-radius: var(--radius); padding: 48px 24px; text-align: center;
+            cursor: pointer; transition: all .25s; background: var(--pink-100); position: relative; overflow: hidden;
+        }
+        .drop-zone:hover, .drop-zone.drag-over { background: #fce7f3; border-color: var(--pink-700); transform: scale(1.01); }
+        .drop-zone.drag-over { box-shadow: 0 0 0 4px rgba(236,72,153,.2); }
+        .drop-icon { font-size: 3rem; margin-bottom: 12px; }
+        .drop-text { font-size: 1.1rem; font-weight: 700; color: var(--pink-700); margin-bottom: 6px; }
+        .drop-sub { font-size: .85rem; color: var(--gray-400); }
+        .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+        /* Preview area */
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 20px; }
+        .preview-item {
+            background: var(--gray-50); border-radius: 12px; border: 1px solid var(--gray-200);
+            overflow: hidden; position: relative; transition: all .25s;
+        }
+        .preview-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .preview-img { width: 100%; height: 140px; object-fit: cover; display: block; }
+        .preview-info { padding: 10px 12px; }
+        .preview-name { font-size: .8rem; font-weight: 700; color: var(--gray-800); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .preview-size { font-size: .75rem; color: var(--gray-400); margin-top: 2px; }
+        .preview-del { position: absolute; top: 6px; right: 6px; background: rgba(239,68,68,.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: .8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .2s; }
+        .preview-item:hover .preview-del { opacity: 1; }
+
+        /* File info panel */
+        .file-info-panel { background: var(--gray-50); border-radius: 12px; padding: 20px; border: 1px solid var(--gray-200); margin-top: 20px; display: none; }
+        .file-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-top: 12px; }
+        .file-info-item { text-align: center; padding: 16px; background: white; border-radius: 10px; border: 1px solid var(--gray-200); }
+        .file-info-val { font-size: 1.1rem; font-weight: 800; color: var(--pink-600); }
+        .file-info-lbl { font-size: .75rem; color: var(--gray-400); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+        /* Progress bar */
+        .upload-progress { margin-top: 16px; display: none; }
+        .progress-bar-wrap { background: var(--gray-100); border-radius: 50px; height: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--pink-600), var(--pink-500)); border-radius: 50px; width: 0%; transition: width .3s ease; }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-pink  { background: var(--pink-600); color: white; }
+        .btn-gray  { background: var(--gray-800); color: white; }
+        .btn-row   { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+
+        .info-box { background: linear-gradient(135deg, var(--pink-100), #fff0f6); border: 1px solid #fbcfe8; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--pink-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--pink-100); color: var(--pink-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">📁 HTML5 API Demo</div>
+    <h1>File API</h1>
+    <p>Upload and preview images of your e-waste items using the HTML5 File API and FileReader — all processed locally in the browser.</p>
+</div>
+
+<main>
+
+    <!-- Drop Zone -->
+    <div class="card">
+        <div class="card-title">📤 Upload E-Waste Images</div>
+        <p class="card-desc">Drag & drop images here or click to browse. The File API reads them directly — no upload to any server. Multiple files supported.</p>
+
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-icon">📸</div>
+            <div class="drop-text">Drop images here or click to browse</div>
+            <div class="drop-sub">PNG, JPG, WEBP, GIF · Max 10 MB each</div>
+            <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this.files)">
+        </div>
+
+        <div class="upload-progress" id="uploadProgress">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:.85rem;font-weight:600">
+                <span>Reading files...</span>
+                <span id="progressPct">0%</span>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+
+        <div class="preview-grid" id="previewGrid"></div>
+
+        <div class="file-info-panel" id="fileInfoPanel">
+            <div style="font-weight:700;color:var(--pink-600)">📊 Batch Summary</div>
+            <div class="file-info-grid">
+                <div class="file-info-item"><div class="file-info-val" id="infoCount">0</div><div class="file-info-lbl">Files Loaded</div></div>
+                <div class="file-info-item"><div class="file-info-val" id="infoTotalSize">0 KB</div><div class="file-info-lbl">Total Size</div></div>
+                <div class="file-info-item"><div class="file-info-val" id="infoTypes">—</div><div class="file-info-lbl">File Types</div></div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-gray" onclick="clearAll()">🗑 Clear All</button>
+        </div>
+    </div>
+
+    <!-- File Reader Text -->
+    <div class="card">
+        <div class="card-title">📄 Read Text File</div>
+        <p class="card-desc">Upload a plain text file (like a pickup manifest or recycling record) and read its contents using <code>FileReader.readAsText()</code>.</p>
+
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+            <label class="btn btn-pink" style="cursor:pointer">
+                📂 Choose Text File
+                <input type="file" accept=".txt,.csv,.json" onchange="readTextFile(this)" style="display:none">
+            </label>
+        </div>
+
+        <textarea id="textOutput" readonly placeholder="Text file contents will appear here..." style="width:100%;height:180px;border:2px solid var(--gray-200);border-radius:12px;padding:14px;font-family:monospace;font-size:.85rem;resize:vertical;outline:none;background:var(--gray-50);color:var(--gray-800)"></textarea>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How File API Works Here</h4>
+        <p>The File API gives us the <code>FileList</code> from <code>&lt;input type="file"&gt;</code> or drag events. For each <code>File</code> object we create a <code>new FileReader()</code>. <code>reader.readAsDataURL(file)</code> gives a base64 string for image preview. <code>reader.readAsText(file)</code> reads text content. The <code>reader.onload</code> callback fires when reading is complete — all processing happens locally in the browser, with zero data sent to any server.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | File API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+let loadedFiles = [];
+
+/* Drag & Drop events on the drop zone */
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', ()=> dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (!files.length) { alert('Please upload image files (PNG, JPG, WEBP, etc.)'); return; }
+
+    const prog = document.getElementById('uploadProgress');
+    const bar  = document.getElementById('progressBar');
+    const pct  = document.getElementById('progressPct');
+    prog.style.display = 'block';
+
+    let done = 0;
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            done++;
+            const p = Math.round((done / files.length) * 100);
+            bar.style.width = p + '%';
+            pct.textContent = p + '%';
+            addPreview(file, e.target.result);
+            loadedFiles.push(file);
+            if (done === files.length) {
+                setTimeout(() => { prog.style.display = 'none'; }, 800);
+                updateSummary();
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function addPreview(file, src) {
+    const grid = document.getElementById('previewGrid');
+    const id   = 'pv-' + Date.now() + Math.random();
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    item.id = id;
+    item.innerHTML = `
+        <img class="preview-img" src="${src}" alt="${file.name}">
+        <div class="preview-info">
+            <div class="preview-name" title="${file.name}">${file.name}</div>
+            <div class="preview-size">${(file.size / 1024).toFixed(1)} KB · ${file.type.split('/')[1].toUpperCase()}</div>
+        </div>
+        <button class="preview-del" onclick="removeItem('${id}')">✕</button>`;
+    grid.appendChild(item);
+}
+
+function removeItem(id) {
+    document.getElementById(id)?.remove();
+    updateSummary();
+}
+
+function updateSummary() {
+    const items = document.querySelectorAll('.preview-item');
+    const panel = document.getElementById('fileInfoPanel');
+    if (items.length === 0) { panel.style.display = 'none'; return; }
+    panel.style.display = 'block';
+    document.getElementById('infoCount').textContent = items.length;
+    let total = loadedFiles.reduce((a, f) => a + f.size, 0);
+    document.getElementById('infoTotalSize').textContent = (total / 1024).toFixed(1) + ' KB';
+    const types = [...new Set(loadedFiles.map(f => f.type.split('/')[1].toUpperCase()))].join(', ');
+    document.getElementById('infoTypes').textContent = types;
+}
+
+function clearAll() {
+    document.getElementById('previewGrid').innerHTML = '';
+    document.getElementById('fileInfoPanel').style.display = 'none';
+    loadedFiles = [];
+}
+
+function readTextFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => { document.getElementById('textOutput').value = e.target.result; };
+    reader.readAsText(file);
+}
+</script>
+</body>
+</html>

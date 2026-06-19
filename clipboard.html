@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard API Demo – EcoCycle</title>
+    <meta name="description" content="Clipboard API demonstration – copy and paste e-waste pickup data using the browser Clipboard API.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --pink-700: #9d174d; --pink-600: #be185d; --pink-500: #ec4899;
+            --pink-100: #fce7f3; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #500724 0%, #be185d 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #fbcfe8; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #881337 0%, #ec4899 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Crect width='20' height='20'/%3E%3C/g%3E%3C/svg%3E"); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--pink-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        .input-styled { width: 100%; border: 2px solid var(--gray-200); border-radius: 12px; padding: 12px 16px; font-family: var(--font); font-size: .95rem; color: var(--gray-800); transition: all .2s; outline: none; background: white; }
+        .input-styled:focus { border-color: var(--pink-500); box-shadow: 0 0 0 3px rgba(236,72,153,.15); }
+        textarea.input-styled { resize: vertical; min-height: 100px; }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-pink  { background: var(--pink-600); color: white; }
+        .btn-green { background: var(--green-700); color: white; }
+        .btn-gray  { background: var(--gray-800); color: white; }
+        .btn-row   { display: flex; flex-wrap: wrap; gap: 12px; }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 50px; font-weight: 700; font-size: .85rem; margin-top: 12px; transition: all .3s; }
+        .status-success { background: #dcfce7; color: #15803d; }
+        .status-error   { background: #fee2e2; color: #b91c1c; }
+        .status-info    { background: #dbeafe; color: #1d4ed8; }
+
+        /* Copy templates grid */
+        .templates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+        .template-item {
+            border: 2px solid var(--gray-200); border-radius: 12px; padding: 16px 18px;
+            cursor: pointer; transition: all .25s; position: relative; background: var(--gray-50);
+        }
+        .template-item:hover { border-color: var(--pink-500); background: var(--pink-100); transform: translateY(-2px); }
+        .template-title { font-weight: 700; font-size: .9rem; color: var(--gray-800); margin-bottom: 6px; }
+        .template-content { font-size: .82rem; color: var(--gray-600); line-height: 1.5; }
+        .template-copy { position: absolute; top: 10px; right: 10px; background: var(--pink-600); color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: .75rem; font-weight: 600; cursor: pointer; opacity: 0; transition: opacity .2s; }
+        .template-item:hover .template-copy { opacity: 1; }
+
+        /* History */
+        .history-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--gray-50); border-radius: 10px; border: 1px solid var(--gray-200); margin-bottom: 8px; transition: all .2s; }
+        .history-item:hover { background: var(--pink-100); border-color: var(--pink-500); }
+        .history-text { flex: 1; font-size: .88rem; color: var(--gray-700); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        .history-time { font-size: .75rem; color: var(--gray-400); }
+        .history-btn  { background: none; border: 1px solid var(--gray-200); border-radius: 6px; padding: 4px 10px; font-size: .75rem; cursor: pointer; transition: all .2s; color: var(--pink-600); font-weight: 600; }
+        .history-btn:hover { background: var(--pink-600); color: white; border-color: var(--pink-600); }
+
+        .info-box { background: linear-gradient(135deg, var(--pink-100), #fff0f6); border: 1px solid #fbcfe8; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--pink-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--pink-100); color: var(--pink-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        /* Paste preview */
+        .paste-box { min-height: 80px; padding: 16px; background: #f9f9f9; border-radius: 12px; border: 2px dashed var(--gray-200); font-size: .9rem; color: var(--gray-600); margin-top: 12px; white-space: pre-wrap; word-break: break-all; transition: all .3s; }
+        .paste-box.has-content { background: white; border-color: var(--pink-500); color: var(--gray-800); }
+
+        @keyframes copyPop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+        .copy-anim { animation: copyPop .3s ease; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">📋 HTML5 API Demo</div>
+    <h1>Clipboard API</h1>
+    <p>Copy pickup details, share collection center info, and paste content — all powered by the modern Async Clipboard API.</p>
+</div>
+
+<main>
+
+    <!-- Quick Copy -->
+    <div class="card">
+        <div class="card-title">⚡ Quick Copy</div>
+        <p class="card-desc">Type anything in the field below and copy it instantly to your clipboard with one click.</p>
+        <input type="text" id="quickText" class="input-styled" value="EcoCycle Pickup Request Confirmed – Schedule ID: ECO-2026-001" style="margin-bottom:14px">
+        <div class="btn-row">
+            <button class="btn btn-pink" id="quickCopyBtn" onclick="quickCopy()">📋 Copy to Clipboard</button>
+        </div>
+        <div id="quickStatus"></div>
+    </div>
+
+    <!-- Copy Templates -->
+    <div class="card">
+        <div class="card-title">📄 EcoCycle Message Templates</div>
+        <p class="card-desc">Click any template to instantly copy it to your clipboard — ready to paste in emails, WhatsApp, or SMS.</p>
+
+        <div class="templates-grid">
+            <div class="template-item" onclick="copyTemplate(this)">
+                <div class="template-title">📅 Pickup Confirmation</div>
+                <div class="template-content">Your EcoCycle pickup is confirmed for tomorrow 10AM–2PM. Please keep your e-waste items ready at the doorstep.</div>
+                <button class="template-copy">Copy</button>
+            </div>
+            <div class="template-item" onclick="copyTemplate(this)">
+                <div class="template-title">📍 Collection Center Info</div>
+                <div class="template-content">Nearest center: Whitefield E-Waste Hub, Whitefield Main Road, Bangalore. Open Mon–Sat 9AM–6PM. Contact: +91 9876543210</div>
+                <button class="template-copy">Copy</button>
+            </div>
+            <div class="template-item" onclick="copyTemplate(this)">
+                <div class="template-title">🎁 Reward Points Alert</div>
+                <div class="template-content">Congratulations! You've earned 50 EcoCycle Reward Points for your recent e-waste pickup. Total balance: 200 points.</div>
+                <button class="template-copy">Copy</button>
+            </div>
+            <div class="template-item" onclick="copyTemplate(this)">
+                <div class="template-title">♻️ E-Waste Guidelines</div>
+                <div class="template-content">Acceptable e-waste: mobiles, laptops, chargers, batteries, TVs, monitors. Please remove personal data before handover.</div>
+                <button class="template-copy">Copy</button>
+            </div>
+        </div>
+
+        <div id="templateStatus" style="margin-top:12px"></div>
+    </div>
+
+    <!-- Paste from Clipboard -->
+    <div class="card">
+        <div class="card-title">📥 Paste from Clipboard</div>
+        <p class="card-desc">Click the button to read text from your clipboard and paste it below. The browser will ask for permission the first time.</p>
+
+        <button class="btn btn-pink" onclick="pasteText()">📥 Paste from Clipboard</button>
+        <div class="paste-box" id="pasteBox">Pasted content will appear here after you click the button above...</div>
+        <div id="pasteStatus" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Copy History -->
+    <div class="card">
+        <div class="card-title">🕐 Copy History (Session)</div>
+        <p class="card-desc">A log of everything you've copied in this session. Click "Re-copy" to copy any item again.</p>
+        <div id="historyList"><div style="color:var(--gray-400);font-size:.9rem;padding:10px 0">Nothing copied yet — use the tools above!</div></div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How the Clipboard API Works Here</h4>
+        <p>The Async Clipboard API uses <code>navigator.clipboard.writeText(text)</code> to write to the clipboard and <code>navigator.clipboard.readText()</code> to read from it. Both return Promises. Writing typically works without permission, but reading requires the user to grant <code>clipboard-read</code> permission. We use <code>.then()</code> and <code>.catch()</code> to handle success and failure gracefully. This is far more reliable than the older <code>document.execCommand('copy')</code> approach.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Clipboard API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+const history = [];
+
+function showStatus(id, msg, type) {
+    const el = document.getElementById(id);
+    el.innerHTML = `<div class="status-badge status-${type}">${msg}</div>`;
+    setTimeout(() => { el.innerHTML = ''; }, 3000);
+}
+
+function addHistory(text) {
+    history.unshift({ text, time: new Date().toLocaleTimeString() });
+    renderHistory();
+}
+
+function renderHistory() {
+    const el = document.getElementById('historyList');
+    if (!history.length) { el.innerHTML = '<div style="color:var(--gray-400);font-size:.9rem;padding:10px 0">Nothing copied yet.</div>'; return; }
+    el.innerHTML = history.slice(0, 8).map((h, i) => `
+        <div class="history-item">
+            <span style="font-size:1rem">📋</span>
+            <span class="history-text" title="${h.text}">${h.text}</span>
+            <span class="history-time">${h.time}</span>
+            <button class="history-btn" onclick="recopy(${i})">Re-copy</button>
+        </div>`).join('');
+}
+
+function recopy(i) {
+    const text = history[i].text;
+    navigator.clipboard.writeText(text).then(() => showStatus('quickStatus', '✅ Re-copied!', 'success'));
+}
+
+function quickCopy() {
+    const text = document.getElementById('quickText').value;
+    if (!text.trim()) { showStatus('quickStatus', '⚠️ Nothing to copy!', 'info'); return; }
+    navigator.clipboard.writeText(text).then(() => {
+        showStatus('quickStatus', '✅ Copied to clipboard!', 'success');
+        document.getElementById('quickCopyBtn').classList.add('copy-anim');
+        setTimeout(() => document.getElementById('quickCopyBtn').classList.remove('copy-anim'), 300);
+        addHistory(text);
+    }).catch(() => showStatus('quickStatus', '❌ Copy failed. Please try manually.', 'error'));
+}
+
+function copyTemplate(el) {
+    const text = el.querySelector('.template-content').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        showStatus('templateStatus', '✅ Template copied to clipboard!', 'success');
+        el.classList.add('copy-anim');
+        setTimeout(() => el.classList.remove('copy-anim'), 300);
+        addHistory(text.substring(0, 60) + (text.length > 60 ? '...' : ''));
+    }).catch(() => showStatus('templateStatus', '❌ Copy failed.', 'error'));
+}
+
+function pasteText() {
+    navigator.clipboard.readText().then(text => {
+        const box = document.getElementById('pasteBox');
+        box.textContent = text || '(empty clipboard)';
+        box.classList.add('has-content');
+        showStatus('pasteStatus', '✅ Pasted from clipboard!', 'success');
+    }).catch(() => {
+        showStatus('pasteStatus', '❌ Permission denied. Please allow clipboard access in browser settings.', 'error');
+        document.getElementById('pasteBox').textContent = 'Permission denied. Use Ctrl+V to paste manually below:';
+    });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video API Demo – EcoCycle</title>
+    <meta name="description" content="Video API demonstration – custom video player with full controls using the HTML5 Video API.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --red-700: #b91c1c; --red-600: #dc2626; --red-500: #ef4444;
+            --red-100: #fee2e2; --green-700: #15803d; --green-500: #22c55e;
+            --gray-50: #f9fafb; --gray-200: #e5e7eb; --gray-400: #9ca3af;
+            --gray-600: #4b5563; --gray-800: #1f2937; --gray-900: #111827;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header { background: linear-gradient(135deg, #450a0a 0%, #b91c1c 100%); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,.3); }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #fca5a5; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%); color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden; }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, rgba(255,255,255,.06), transparent 60%); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 960px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--red-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        /* Video Player Wrapper */
+        .video-wrap { position: relative; border-radius: 16px; overflow: hidden; background: #000; box-shadow: 0 12px 40px rgba(0,0,0,.4); }
+        video { display: block; width: 100%; max-height: 420px; object-fit: contain; background: #000; }
+
+        /* Custom Controls overlay */
+        .video-controls {
+            background: linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 100%);
+            padding: 16px 20px 14px; position: absolute; bottom: 0; left: 0; right: 0;
+            transition: opacity .3s;
+        }
+        .video-wrap:hover .video-controls { opacity: 1; }
+
+        .vid-progress {
+            -webkit-appearance: none; width: 100%; height: 5px; border-radius: 50px;
+            background: rgba(255,255,255,.25); cursor: pointer; outline: none; margin-bottom: 12px;
+        }
+        .vid-progress::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+            background: var(--red-500); cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.5);
+        }
+
+        .vid-ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .vid-btn { background: rgba(255,255,255,.15); border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: .9rem; transition: all .2s; font-family: var(--font); font-weight: 600; }
+        .vid-btn:hover { background: rgba(255,255,255,.3); }
+        .vid-time { color: rgba(255,255,255,.8); font-size: .82rem; font-weight: 600; margin-left: 4px; }
+        .vid-vol { -webkit-appearance: none; width: 80px; height: 4px; border-radius: 50px; background: rgba(255,255,255,.3); cursor: pointer; }
+        .vid-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: white; }
+        .vid-spacer { flex: 1; }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-red    { background: var(--red-600); color: white; }
+        .btn-green  { background: var(--green-700); color: white; }
+        .btn-purple { background: #7c3aed; color: white; }
+        .btn-gray   { background: var(--gray-800); color: white; }
+        .btn-orange { background: #f97316; color: white; }
+        .btn-row    { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+
+        /* Stats panel */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-top: 20px; }
+        .stat-card { background: var(--gray-50); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--gray-200); transition: all .25s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-val { font-size: 1.2rem; font-weight: 800; color: var(--red-600); }
+        .stat-lbl { font-size: .75rem; color: var(--gray-400); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+        .info-box { background: linear-gradient(135deg, var(--red-100), #fff1f2); border: 1px solid #fecaca; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--red-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: var(--red-100); color: var(--red-700); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">🎥 HTML5 API Demo</div>
+    <h1>Video API</h1>
+    <p>A fully custom-built video player with seek, volume, speed, fullscreen, picture-in-picture — all powered by the HTML5 HTMLVideoElement API.</p>
+</div>
+
+<main>
+
+    <!-- Custom Video Player -->
+    <div class="card">
+        <div class="card-title">🎬 EcoCycle Awareness Video</div>
+        <p class="card-desc">Watch our e-waste awareness video in this custom player built entirely with the HTML5 Video API. All controls are JavaScript-powered — no browser default UI.</p>
+
+        <div class="video-wrap" id="videoWrap">
+            <video id="ecoVideo" onclick="togglePlay()" preload="metadata">
+                <source src="video.mp4" type="video/mp4">
+                Your browser does not support HTML5 video.
+            </video>
+
+            <div class="video-controls" id="videoControls">
+                <input type="range" class="vid-progress" id="vidSeek" value="0" min="0" max="100" step="0.1" oninput="seekVideo(this.value)">
+                <div class="vid-ctrl-row">
+                    <button class="vid-btn" onclick="restartVideo()" title="Restart">⏮</button>
+                    <button class="vid-btn" onclick="rewindVideo()" title="-10s">-10s</button>
+                    <button class="vid-btn" id="vidPlayBtn" onclick="togglePlay()">▶ Play</button>
+                    <button class="vid-btn" onclick="skipVideo()" title="+10s">+10s</button>
+                    <span class="vid-time" id="vidTime">0:00 / 0:00</span>
+                    <div class="vid-spacer"></div>
+                    <span style="color:white;font-size:.85rem">🔊</span>
+                    <input type="range" class="vid-vol" id="vidVol" min="0" max="1" step="0.05" value="1" oninput="setVolume(this.value)">
+                    <button class="vid-btn" onclick="toggleMute()" id="muteBtn">🔊</button>
+                    <button class="vid-btn" onclick="togglePiP()" title="Picture-in-Picture">⧉</button>
+                    <button class="vid-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="stat-val" id="statDuration">—</div><div class="stat-lbl">Duration</div></div>
+            <div class="stat-card"><div class="stat-val" id="statSpeed">1x</div><div class="stat-lbl">Speed</div></div>
+            <div class="stat-card"><div class="stat-val" id="statVolume">100%</div><div class="stat-lbl">Volume</div></div>
+            <div class="stat-card"><div class="stat-val" id="statPlays">0</div><div class="stat-lbl">Play Count</div></div>
+        </div>
+    </div>
+
+    <!-- Advanced Controls -->
+    <div class="card">
+        <div class="card-title">⚡ Advanced Controls</div>
+        <p class="card-desc">Use these controls to test the full range of the HTML5 Video API capabilities.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:8px">⚡ Playback Speed: <span id="speedDisplay">1x</span></label>
+                <input type="range" min="0.25" max="3" step="0.25" value="1" oninput="setSpeed(this.value)" style="width:100%;accent-color:#dc2626">
+            </div>
+            <div>
+                <label style="font-size:.85rem;font-weight:600;color:var(--gray-600);display:block;margin-bottom:8px">📍 Jump to Time (seconds)</label>
+                <div style="display:flex;gap:8px">
+                    <input type="number" id="jumpTime" placeholder="e.g. 30" min="0" style="flex:1;padding:8px 12px;border:2px solid var(--gray-200);border-radius:8px;font-family:var(--font);outline:none">
+                    <button class="btn btn-red" style="padding:8px 16px;font-size:.85rem" onclick="jumpTo()">Go</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-red"    onclick="togglePlay()">▶ Play / Pause</button>
+            <button class="btn btn-gray"   onclick="restartVideo()">↩ Restart</button>
+            <button class="btn btn-purple" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+            <button class="btn btn-orange" onclick="togglePiP()">⧉ Picture-in-Picture</button>
+            <button class="btn btn-green"  onclick="captureFrame()">📷 Capture Frame</button>
+        </div>
+
+        <canvas id="captureCanvas" style="display:none"></canvas>
+        <div id="captureResult" style="margin-top:16px"></div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How the Video API Works Here</h4>
+        <p>The <code>HTMLVideoElement</code> inherits from <code>HTMLMediaElement</code>. Key properties: <code>video.play()</code>, <code>video.pause()</code>, <code>video.currentTime</code>, <code>video.duration</code>, <code>video.volume</code>, <code>video.playbackRate</code>, <code>video.muted</code>. We also use <code>video.requestFullscreen()</code> for fullscreen mode and <code>video.requestPictureInPicture()</code> for PiP. The <code>timeupdate</code> event syncs our custom seek bar in real-time. We use a <code>&lt;canvas&gt;</code> to capture frames with <code>ctx.drawImage(video, ...)</code>.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Video API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+const video  = document.getElementById('ecoVideo');
+const seek   = document.getElementById('vidSeek');
+const btn    = document.getElementById('vidPlayBtn');
+let playCount = 0;
+
+function fmt(s) { if (isNaN(s)) return '0:00'; const m=Math.floor(s/60); return m+':'+String(Math.floor(s%60)).padStart(2,'0'); }
+
+function togglePlay() {
+    if (video.paused) {
+        video.play(); btn.textContent = '⏸ Pause';
+        playCount++; document.getElementById('statPlays').textContent = playCount;
+    } else { video.pause(); btn.textContent = '▶ Play'; }
+}
+
+function seekVideo(val)    { if (!isNaN(video.duration)) video.currentTime = (val/100)*video.duration; }
+function setVolume(val)    { video.volume = parseFloat(val); document.getElementById('statVolume').textContent = Math.round(val*100)+'%'; }
+function setSpeed(val)     { video.playbackRate = parseFloat(val); document.getElementById('speedDisplay').textContent = parseFloat(val).toFixed(2)+'x'; document.getElementById('statSpeed').textContent = parseFloat(val).toFixed(2)+'x'; }
+function restartVideo()    { video.currentTime = 0; video.play(); btn.textContent = '⏸ Pause'; }
+function rewindVideo()     { video.currentTime = Math.max(0, video.currentTime-10); }
+function skipVideo()       { video.currentTime = Math.min(video.duration||0, video.currentTime+10); }
+function jumpTo()          { const t=parseInt(document.getElementById('jumpTime').value); if (!isNaN(t)) video.currentTime = Math.min(t, video.duration||0); }
+
+let muted = false;
+function toggleMute() {
+    muted = !muted; video.muted = muted;
+    document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) document.getElementById('videoWrap').requestFullscreen?.();
+    else document.exitFullscreen?.();
+}
+
+function togglePiP() {
+    if (document.pictureInPictureElement) document.exitPictureInPicture?.();
+    else video.requestPictureInPicture?.().catch(() => alert('PiP not supported in this browser.'));
+}
+
+function captureFrame() {
+    const canvas = document.getElementById('captureCanvas');
+    canvas.width  = video.videoWidth  || 640;
+    canvas.height = video.videoHeight || 360;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const url = canvas.toDataURL('image/png');
+    const result = document.getElementById('captureResult');
+    result.innerHTML = `<div style="font-size:.85rem;font-weight:600;color:var(--gray-600);margin-bottom:8px">📷 Captured Frame at ${fmt(video.currentTime)}</div>
+        <img src="${url}" style="max-width:100%;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+        <a href="${url}" download="ecocycle-frame.png" class="btn btn-green" style="margin-top:10px;display:inline-flex">⬇ Download Frame</a>`;
+}
+
+video.addEventListener('timeupdate', () => {
+    if (!isNaN(video.duration)) {
+        seek.value = (video.currentTime / video.duration) * 100;
+        document.getElementById('vidTime').textContent = fmt(video.currentTime) + ' / ' + fmt(video.duration);
+    }
+});
+video.addEventListener('loadedmetadata', () => {
+    document.getElementById('statDuration').textContent = fmt(video.duration);
+});
+video.addEventListener('ended', () => { btn.textContent = '▶ Play'; });
+</script>
+</body>
+</html>

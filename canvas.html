@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas API Demo – EcoCycle</title>
+    <meta name="description" content="Interactive Canvas API demonstration – EcoCycle E-Waste Collection Portal">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green-900: #14532d;
+            --green-700: #15803d;
+            --green-600: #16a34a;
+            --green-500: #22c55e;
+            --green-100: #dcfce7;
+            --teal-500: #14b8a6;
+            --white: #ffffff;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-400: #9ca3af;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.12);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,.15);
+            --radius: 16px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+        }
+
+        /* ---- Header ---- */
+        header {
+            background: linear-gradient(135deg, var(--green-900) 0%, var(--green-700) 100%);
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,.3);
+        }
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -.5px; }
+        .logo span { color: var(--green-500); }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,.15);
+            border: 1px solid rgba(255,255,255,.3);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: .9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all .2s;
+            backdrop-filter: blur(8px);
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,.25);
+            transform: translateX(-3px);
+        }
+
+        /* ---- Hero ---- */
+        .page-hero {
+            background: linear-gradient(135deg, var(--green-700) 0%, var(--teal-500) 100%);
+            color: white;
+            padding: 64px 24px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .page-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .page-hero p {
+            font-size: 1.1rem;
+            opacity: .85;
+            max-width: 520px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,.2);
+            border: 1px solid rgba(255,255,255,.3);
+            backdrop-filter: blur(8px);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        /* ---- Main content ---- */
+        main { max-width: 1000px; margin: 0 auto; padding: 48px 24px 80px; }
+
+        .section-card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            padding: 32px;
+            margin-bottom: 40px;
+            border: 1px solid var(--gray-200);
+        }
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--green-700);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-desc {
+            color: var(--gray-600);
+            font-size: .95rem;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        /* ---- Chart Canvas ---- */
+        .canvas-wrapper {
+            width: 100%;
+            background: var(--gray-50);
+            border-radius: 12px;
+            border: 2px solid var(--gray-200);
+            overflow: hidden;
+            position: relative;
+        }
+        #ecoCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 340px;
+        }
+
+        /* ---- Drawing Pad ---- */
+        .drawing-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tool-group label {
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+        input[type="color"] {
+            width: 40px;
+            height: 36px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 2px;
+        }
+        input[type="range"] {
+            width: 100px;
+            accent-color: var(--green-600);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn:active { transform: translateY(0); }
+        .btn-green { background: var(--green-600); color: white; }
+        .btn-red { background: #ef4444; color: white; }
+        .btn-gray { background: var(--gray-800); color: white; }
+        .btn-teal { background: var(--teal-500); color: white; }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--green-600);
+            color: var(--green-700);
+        }
+
+        #drawCanvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+            border-radius: 12px;
+            touch-action: none;
+            background: white;
+        }
+
+        /* ---- Legend ---- */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .85rem;
+            color: var(--gray-600);
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+
+        /* ---- Info box ---- */
+        .info-box {
+            background: linear-gradient(135deg, var(--green-100), #e0f2fe);
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-top: 24px;
+        }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--green-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+
+        /* ---- Animate bar on draw ---- */
+        @keyframes barGrow {
+            from { transform: scaleY(0); transform-origin: bottom; }
+            to { transform: scaleY(1); transform-origin: bottom; }
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            background: var(--gray-900);
+            color: var(--gray-400);
+            text-align: center;
+            padding: 24px;
+            font-size: .85rem;
+        }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 600px) {
+            .section-card { padding: 20px; }
+            .drawing-controls { gap: 8px; }
+            input[type="range"] { width: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<!-- ===== HERO ===== -->
+<div class="page-hero">
+    <div class="badge">🎨 HTML5 API Demo</div>
+    <h1>Canvas API</h1>
+    <p>Draw dynamic charts and create freehand artwork using the HTML5 Canvas API — all rendered in real-time in the browser.</p>
+</div>
+
+<!-- ===== MAIN ===== -->
+<main>
+
+    <!-- SECTION 1: Bar Chart -->
+    <div class="section-card">
+        <div class="section-title">📊 E-Waste Collection Bar Chart</div>
+        <p class="section-desc">This chart is drawn entirely using the Canvas 2D rendering context — no libraries needed. The data shows monthly e-waste collection volumes in kilograms.</p>
+
+        <div class="canvas-wrapper">
+            <canvas id="ecoCanvas"></canvas>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#15803d"></div> January</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div> February</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> March</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div> April</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#14b8a6"></div> May</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#0ea5e9"></div> June</div>
+        </div>
+
+        <div class="info-box">
+            <h4>🔍 How Canvas API Works Here</h4>
+            <p>We call <code>canvas.getContext('2d')</code> to get a drawing context, then use <code>ctx.fillRect()</code> to draw bars, <code>ctx.fillText()</code> for labels, and <code>ctx.createLinearGradient()</code> for the gradient fills. The chart is fully responsive — it resizes with the window.</p>
+        </div>
+    </div>
+
+    <!-- SECTION 2: Drawing Pad -->
+    <div class="section-card">
+        <div class="section-title">✏️ Freehand Drawing Pad</div>
+        <p class="section-desc">Draw anything on the canvas using your mouse or touch screen. Pick a color, adjust the brush size, and express yourself. Works on both desktop and mobile!</p>
+
+        <div class="drawing-controls">
+            <div class="tool-group">
+                <label for="brushColor">🎨 Color:</label>
+                <input type="color" id="brushColor" value="#15803d">
+            </div>
+            <div class="tool-group">
+                <label for="brushSize">🖊 Size:</label>
+                <input type="range" id="brushSize" min="2" max="40" value="8">
+                <span id="sizeDisplay" style="font-size:.85rem;color:#4b5563;min-width:28px">8px</span>
+            </div>
+            <div class="tool-group">
+                <label for="toolMode">🛠 Tool:</label>
+                <select id="toolMode" style="padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;font-family:inherit;font-size:.9rem;">
+                    <option value="pen">✏️ Pen</option>
+                    <option value="eraser">🧹 Eraser</option>
+                </select>
+            </div>
+            <button class="btn btn-red" id="clearBtn" onclick="clearCanvas()">🗑 Clear</button>
+            <button class="btn btn-teal" onclick="downloadCanvas()">⬇ Download</button>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="drawCanvas" height="400"></canvas>
+        </div>
+
+        <div class="info-box" style="margin-top:16px">
+            <h4>🔍 How Freehand Drawing Works</h4>
+            <p>We listen for <code>mousedown</code>, <code>mousemove</code>, and <code>mouseup</code> events (plus touch equivalents). On each move while the button is pressed, we call <code>ctx.lineTo()</code> and <code>ctx.stroke()</code> to draw a continuous path. The eraser mode simply sets <code>ctx.globalCompositeOperation = 'destination-out'</code>.</p>
+        </div>
+    </div>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+    <p>© 2026 EcoCycle | Canvas API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+/* =============================================
+   CHART CANVAS — Responsive Bar Chart
+   Uses: fillRect, fillText, createLinearGradient, arc
+============================================= */
+const chartCanvas = document.getElementById('ecoCanvas');
+const ctx = chartCanvas.getContext('2d');
+
+const chartData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    values: [120, 185, 250, 310, 220, 390],
+    colors: [
+        ['#15803d', '#22c55e'],
+        ['#16a34a', '#4ade80'],
+        ['#22c55e', '#86efac'],
+        ['#4ade80', '#bbf7d0'],
+        ['#14b8a6', '#5eead4'],
+        ['#0ea5e9', '#7dd3fc'],
+    ]
+};
+
+function drawChart() {
+    // Make canvas match its CSS display width
+    const dpr = window.devicePixelRatio || 1;
+    const rect = chartCanvas.parentElement.getBoundingClientRect();
+    const W = rect.width;
+    const H = Math.min(340, W * 0.45);
+
+    chartCanvas.width  = W * dpr;
+    chartCanvas.height = H * dpr;
+    chartCanvas.style.width  = W + 'px';
+    chartCanvas.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, W, H);
+
+    const padTop    = 48;
+    const padBottom = 40;
+    const padLeft   = 48;
+    const padRight  = 20;
+    const chartW    = W - padLeft - padRight;
+    const chartH    = H - padTop - padBottom;
+    const maxVal    = Math.max(...chartData.values);
+    const barCount  = chartData.labels.length;
+    const barW      = (chartW / barCount) * 0.55;
+    const barGap    = (chartW / barCount) * 0.45;
+
+    /* Background grid lines */
+    const gridLines = 5;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 4]);
+    for (let i = 0; i <= gridLines; i++) {
+        const y = padTop + (chartH / gridLines) * i;
+        ctx.beginPath();
+        ctx.moveTo(padLeft, y);
+        ctx.lineTo(W - padRight, y);
+        ctx.stroke();
+        // Y-axis labels
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = `${Math.max(10, W * 0.014)}px Inter, sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.fillText(
+            Math.round(maxVal - (maxVal / gridLines) * i) + 'kg',
+            padLeft - 6,
+            y + 4
+        );
+    }
+    ctx.setLineDash([]);
+
+    /* Title */
+    ctx.fillStyle = '#14532d';
+    ctx.font = `bold ${Math.max(12, W * 0.019)}px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Monthly E-Waste Collection (kg)', W / 2, 28);
+
+    /* Bars */
+    for (let i = 0; i < barCount; i++) {
+        const barH  = (chartData.values[i] / maxVal) * chartH;
+        const x     = padLeft + i * (barW + barGap) + barGap / 2;
+        const y     = padTop + chartH - barH;
+
+        // Gradient
+        const grad = ctx.createLinearGradient(x, y, x, padTop + chartH);
+        grad.addColorStop(0, chartData.colors[i][0]);
+        grad.addColorStop(1, chartData.colors[i][1]);
+
+        // Rounded top bar
+        const radius = Math.min(6, barW / 4);
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + barW - radius, y);
+        ctx.quadraticCurveTo(x + barW, y, x + barW, y + radius);
+        ctx.lineTo(x + barW, padTop + chartH);
+        ctx.lineTo(x, padTop + chartH);
+        ctx.lineTo(x, y + radius);
+        ctx.quadraticCurveTo(x, y, x + radius, y);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Shadow effect
+        ctx.shadowColor = 'rgba(0,0,0,.12)';
+        ctx.shadowBlur  = 6;
+        ctx.shadowOffsetY = 3;
+        ctx.fill();
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur  = 0;
+
+        // Value label on top
+        ctx.fillStyle = '#14532d';
+        ctx.font = `bold ${Math.max(9, W * 0.013)}px Inter, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(chartData.values[i] + 'kg', x + barW / 2, y - 6);
+
+        // Month label below
+        ctx.fillStyle = '#4b5563';
+        ctx.font = `${Math.max(10, W * 0.014)}px Inter, sans-serif`;
+        ctx.fillText(chartData.labels[i], x + barW / 2, H - 12);
+    }
+}
+
+// Draw on load and on resize
+window.addEventListener('load', drawChart);
+window.addEventListener('resize', drawChart);
+
+
+/* =============================================
+   DRAWING PAD — Freehand Canvas
+   Uses: beginPath, moveTo, lineTo, stroke
+        mousedown/move/up, touch events
+============================================= */
+const drawCanvas  = document.getElementById('drawCanvas');
+const dc          = drawCanvas.getContext('2d');
+let drawing       = false;
+let lastX         = 0;
+let lastY         = 0;
+
+function initDrawCanvas() {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = drawCanvas.parentElement.getBoundingClientRect();
+    const W    = rect.width;
+    const H    = 400;
+
+    drawCanvas.width  = W * dpr;
+    drawCanvas.height = H * dpr;
+    drawCanvas.style.width  = W + 'px';
+    drawCanvas.style.height = H + 'px';
+    dc.scale(dpr, dpr);
+
+    // White background
+    dc.fillStyle = '#ffffff';
+    dc.fillRect(0, 0, W, H);
+
+    // Watermark hint
+    dc.fillStyle = '#e5e7eb';
+    dc.font = 'bold 18px Inter, sans-serif';
+    dc.textAlign = 'center';
+    dc.fillText('✏️ Draw here...', W / 2, H / 2);
+}
+
+function getPos(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr  = window.devicePixelRatio || 1;
+    if (e.touches) {
+        return {
+            x: (e.touches[0].clientX - rect.left),
+            y: (e.touches[0].clientY - rect.top)
+        };
+    }
+    return {
+        x: (e.clientX - rect.left),
+        y: (e.clientY - rect.top)
+    };
+}
+
+function startDraw(e) {
+    drawing = true;
+    const pos = getPos(e, drawCanvas);
+    lastX = pos.x;
+    lastY = pos.y;
+
+    dc.beginPath();
+    dc.arc(lastX, lastY, (parseInt(document.getElementById('brushSize').value)) / 2, 0, Math.PI * 2);
+    const tool = document.getElementById('toolMode').value;
+    if (tool === 'eraser') {
+        dc.globalCompositeOperation = 'destination-out';
+        dc.fillStyle = 'rgba(0,0,0,1)';
+    } else {
+        dc.globalCompositeOperation = 'source-over';
+        dc.fillStyle = document.getElementById('brushColor').value;
+    }
+    dc.fill();
+}
+
+function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+
+    const pos  = getPos(e, drawCanvas);
+    const tool = document.getElementById('toolMode').value;
+    const size = parseInt(document.getElementById('brushSize').value);
+
+    dc.lineWidth   = size;
+    dc.lineCap     = 'round';
+    dc.lineJoin    = 'round';
+
+    if (tool === 'eraser') {
+        dc.globalCompositeOperation = 'destination-out';
+        dc.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+        dc.globalCompositeOperation = 'source-over';
+        dc.strokeStyle = document.getElementById('brushColor').value;
+    }
+
+    dc.beginPath();
+    dc.moveTo(lastX, lastY);
+    dc.lineTo(pos.x, pos.y);
+    dc.stroke();
+
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function stopDraw() { drawing = false; }
+
+// Mouse events
+drawCanvas.addEventListener('mousedown', startDraw);
+drawCanvas.addEventListener('mousemove', draw);
+drawCanvas.addEventListener('mouseup',   stopDraw);
+drawCanvas.addEventListener('mouseleave',stopDraw);
+
+// Touch events (mobile support)
+drawCanvas.addEventListener('touchstart', startDraw,  { passive: false });
+drawCanvas.addEventListener('touchmove',  draw,        { passive: false });
+drawCanvas.addEventListener('touchend',   stopDraw);
+
+function clearCanvas() {
+    const dpr  = window.devicePixelRatio || 1;
+    const rect = drawCanvas.parentElement.getBoundingClientRect();
+    const W    = rect.width;
+    const H    = 400;
+    dc.globalCompositeOperation = 'source-over';
+    dc.fillStyle = '#ffffff';
+    dc.fillRect(0, 0, W, H);
+    dc.fillStyle = '#e5e7eb';
+    dc.font = 'bold 18px Inter, sans-serif';
+    dc.textAlign = 'center';
+    dc.fillText('✏️ Draw here...', W / 2, H / 2);
+}
+
+function downloadCanvas() {
+    const link    = document.createElement('a');
+    link.download = 'ecocycle-drawing.png';
+    link.href     = drawCanvas.toDataURL();
+    link.click();
+}
+
+// Brush size display
+const brushSizeInput = document.getElementById('brushSize');
+const sizeDisplay    = document.getElementById('sizeDisplay');
+brushSizeInput.addEventListener('input', function() {
+    sizeDisplay.textContent = this.value + 'px';
+});
+
+// Init drawing canvas on load
+window.addEventListener('load', initDrawCanvas);
+window.addEventListener('resize', () => {
+    // Save drawing, reinit, restore
+    const dataURL = drawCanvas.toDataURL();
+    initDrawCanvas();
+    const img = new Image();
+    img.onload = () => { dc.drawImage(img, 0, 0); };
+    img.src    = dataURL;
+});
+</script>
+</body>
+</html>

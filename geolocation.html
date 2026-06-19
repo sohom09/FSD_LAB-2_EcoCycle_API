@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geolocation API Demo – EcoCycle</title>
+    <meta name="description" content="Geolocation API demonstration – find nearby e-waste collection centers using your real-time location.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --blue-700: #1d4ed8; --blue-600: #2563eb; --blue-500: #3b82f6;
+            --blue-100: #dbeafe; --green-700: #15803d; --green-500: #22c55e;
+            --green-100: #dcfce7; --gray-50: #f9fafb; --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb; --gray-400: #9ca3af; --gray-600: #4b5563;
+            --gray-800: #1f2937; --gray-900: #111827; --white: #fff;
+            --shadow-md: 0 4px 16px rgba(0,0,0,.1); --shadow-lg: 0 10px 40px rgba(0,0,0,.14);
+            --radius: 16px; --font: 'Inter', sans-serif;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: var(--font); background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,.3);
+        }
+        nav { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 68px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: white; }
+        .logo span { color: #60a5fa; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: white; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+        .back-btn:hover { background: rgba(255,255,255,.25); transform: translateX(-3px); }
+
+        .page-hero {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white; padding: 64px 24px 100px; text-align: center; position: relative; overflow: hidden;
+        }
+        .page-hero::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E"); }
+        .badge { display: inline-block; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); padding: 6px 18px; border-radius: 50px; font-size: .8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; }
+        .page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 16px; position: relative; }
+        .page-hero p { font-size: 1.1rem; opacity: .85; max-width: 520px; margin: 0 auto; position: relative; line-height: 1.7; }
+
+        main { max-width: 900px; margin: -48px auto 0; padding: 0 24px 80px; position: relative; z-index: 10; }
+
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 36px; margin-bottom: 28px; border: 1px solid var(--gray-200); }
+        .card-title { font-size: 1.3rem; font-weight: 700; color: var(--blue-600); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+        .card-desc { color: var(--gray-600); font-size: .95rem; margin-bottom: 24px; line-height: 1.6; }
+
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 50px; font-family: var(--font); font-weight: 600; font-size: .95rem; cursor: pointer; transition: all .2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-blue { background: var(--blue-600); color: white; }
+        .btn-green { background: var(--green-700); color: white; }
+        .btn-gray { background: var(--gray-800); color: white; }
+
+        .location-result {
+            margin-top: 20px; padding: 20px 24px; background: var(--gray-50); border-radius: 12px;
+            border: 2px solid var(--gray-200); min-height: 64px; transition: all .3s;
+        }
+        .location-result.loaded { background: var(--blue-100); border-color: var(--blue-500); }
+        .location-result.error  { background: #fee2e2; border-color: #ef4444; }
+
+        .coords-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-top: 20px; }
+        .coord-card { background: white; border: 1px solid var(--gray-200); border-radius: 12px; padding: 18px; text-align: center; transition: all .3s; }
+        .coord-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .coord-value { font-size: 1.4rem; font-weight: 800; color: var(--blue-600); }
+        .coord-label { font-size: .8rem; color: var(--gray-400); margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+        /* Map embed placeholder */
+        .map-placeholder {
+            width: 100%; height: 300px; border-radius: 12px; border: 2px solid var(--gray-200);
+            background: linear-gradient(135deg, #dbeafe, #e0f2fe);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 12px; color: var(--blue-600); font-weight: 600; transition: all .3s;
+            overflow: hidden; position: relative;
+        }
+        .map-pin { font-size: 3rem; animation: mapBounce 1.5s ease-in-out infinite; }
+        @keyframes mapBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        /* Collection centers */
+        .center-card {
+            display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+            background: var(--gray-50); border-radius: 12px; border: 1px solid var(--gray-200);
+            transition: all .25s; margin-bottom: 12px;
+        }
+        .center-card:hover { background: var(--blue-100); border-color: var(--blue-500); transform: translateX(4px); }
+        .center-icon { width: 48px; height: 48px; border-radius: 10px; background: var(--blue-600); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+        .center-name { font-weight: 700; font-size: .95rem; color: var(--gray-800); }
+        .center-dist { font-size: .82rem; color: var(--gray-400); margin-top: 2px; }
+        .center-badge { margin-left: auto; background: var(--green-100); color: var(--green-700); font-size: .75rem; font-weight: 700; padding: 4px 10px; border-radius: 50px; white-space: nowrap; }
+
+        .info-box { background: linear-gradient(135deg, var(--blue-100), #e0f2fe); border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px 24px; margin-top: 24px; }
+        .info-box h4 { font-size: 1rem; font-weight: 700; color: var(--blue-700); margin-bottom: 8px; }
+        .info-box p { font-size: .9rem; color: var(--gray-600); line-height: 1.6; }
+        code { background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: .88em; }
+
+        footer { background: var(--gray-900); color: var(--gray-400); text-align: center; padding: 24px; font-size: .85rem; }
+        footer a { color: var(--green-500); text-decoration: none; }
+
+        .loading-dots { display: inline-flex; gap: 6px; }
+        .loading-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-500); animation: dotPulse 1.2s ease-in-out infinite; }
+        .loading-dots span:nth-child(2) { animation-delay: .2s; }
+        .loading-dots span:nth-child(3) { animation-delay: .4s; }
+        @keyframes dotPulse { 0%,80%,100% { transform: scale(0.6); opacity: .4; } 40% { transform: scale(1); opacity: 1; } }
+
+        @media (max-width: 600px) { .card { padding: 20px; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav>
+        <div class="logo">♻ Eco<span>Cycle</span></div>
+        <a href="index.html" class="back-btn">← Back to Portal</a>
+    </nav>
+</header>
+
+<div class="page-hero">
+    <div class="badge">📍 HTML5 API Demo</div>
+    <h1>Geolocation API</h1>
+    <p>Detect your real-time location to find the nearest e-waste collection centers around you — powered by the HTML5 Geolocation API.</p>
+</div>
+
+<main>
+
+    <!-- Location Detector -->
+    <div class="card">
+        <div class="card-title">🎯 Detect My Location</div>
+        <p class="card-desc">Click the button below to request your current GPS coordinates. Your browser will ask for permission first — this is required for privacy.</p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+            <button class="btn btn-blue" onclick="getLocation()" id="locBtn">📍 Get My Location</button>
+            <button class="btn btn-gray" onclick="watchLocation()" id="watchBtn">👁 Watch Live</button>
+            <button class="btn" style="background:#ef4444;color:white" onclick="stopWatch()" id="stopBtn" disabled>⏹ Stop Watch</button>
+        </div>
+
+        <div class="location-result" id="locationResult">
+            <span style="color:#9ca3af">📡 Waiting for location request...</span>
+        </div>
+
+        <div class="coords-grid" id="coordsGrid" style="display:none">
+            <div class="coord-card">
+                <div class="coord-value" id="coordLat">—</div>
+                <div class="coord-label">Latitude</div>
+            </div>
+            <div class="coord-card">
+                <div class="coord-value" id="coordLng">—</div>
+                <div class="coord-label">Longitude</div>
+            </div>
+            <div class="coord-card">
+                <div class="coord-value" id="coordAcc">—</div>
+                <div class="coord-label">Accuracy (m)</div>
+            </div>
+            <div class="coord-card">
+                <div class="coord-value" id="coordTime">—</div>
+                <div class="coord-label">Timestamp</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Placeholder -->
+    <div class="card">
+        <div class="card-title">🗺️ Location Map</div>
+        <p class="card-desc">After detecting your location, the map will highlight nearby e-waste centers. Click "Get My Location" first.</p>
+
+        <div class="map-placeholder" id="mapContainer">
+            <div class="map-pin">📍</div>
+            <div style="font-size:1rem;color:#4b5563">Get your location to see the map</div>
+            <div style="font-size:.85rem;color:#9ca3af">Nearby centers will appear here</div>
+        </div>
+    </div>
+
+    <!-- Nearby Centers -->
+    <div class="card">
+        <div class="card-title">♻️ Nearby E-Waste Collection Centers</div>
+        <p class="card-desc">Based on your location (Bangalore area), these are the closest certified e-waste collection centers.</p>
+
+        <div id="centersContainer">
+            <div class="center-card">
+                <div class="center-icon">🏭</div>
+                <div>
+                    <div class="center-name">Whitefield E-Waste Hub</div>
+                    <div class="center-dist">📍 Whitefield Main Road, Bangalore · Mon–Sat 9AM–6PM</div>
+                </div>
+                <span class="center-badge">2.3 km</span>
+            </div>
+            <div class="center-card">
+                <div class="center-icon">♻️</div>
+                <div>
+                    <div class="center-name">Koramangala Recycling Centre</div>
+                    <div class="center-dist">📍 6th Block Koramangala, Bangalore · Mon–Sun 8AM–8PM</div>
+                </div>
+                <span class="center-badge">4.1 km</span>
+            </div>
+            <div class="center-card">
+                <div class="center-icon">🔌</div>
+                <div>
+                    <div class="center-name">Indiranagar E-Drop Point</div>
+                    <div class="center-dist">📍 100 Feet Road, Indiranagar · Mon–Sat 10AM–7PM</div>
+                </div>
+                <span class="center-badge">5.7 km</span>
+            </div>
+            <div class="center-card">
+                <div class="center-icon">💻</div>
+                <div>
+                    <div class="center-name">HSR Layout Collection Center</div>
+                    <div class="center-dist">📍 Sector 4, HSR Layout, Bangalore · Mon–Fri 9AM–5PM</div>
+                </div>
+                <span class="center-badge">8.2 km</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h4>🔍 How Geolocation API Works Here</h4>
+        <p>We use <code>navigator.geolocation.getCurrentPosition(success, error)</code> to get a one-time fix, and <code>navigator.geolocation.watchPosition()</code> for live tracking. The browser prompts the user for permission — no location data is sent to any server. The returned <code>GeolocationPosition</code> object contains <code>coords.latitude</code>, <code>coords.longitude</code>, and <code>coords.accuracy</code> in metres.</p>
+    </div>
+
+</main>
+
+<footer>
+    <p>© 2026 EcoCycle | Geolocation API Demo | <a href="index.html">← Return to Portal</a></p>
+</footer>
+
+<script>
+let watchId = null;
+
+function getLocation() {
+    const result = document.getElementById('locationResult');
+    result.className = 'location-result';
+    result.innerHTML = '<div style="display:flex;align-items:center;gap:10px;color:#2563eb"><div class="loading-dots"><span></span><span></span><span></span></div> Detecting your location...</div>';
+
+    if (!navigator.geolocation) {
+        result.className = 'location-result error';
+        result.innerHTML = '<span style="color:#ef4444">❌ Geolocation is not supported by your browser.</span>';
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+        enableHighAccuracy: true, timeout: 10000, maximumAge: 0
+    });
+}
+
+function watchLocation() {
+    if (!navigator.geolocation) return;
+    document.getElementById('watchBtn').disabled = true;
+    document.getElementById('stopBtn').disabled  = false;
+    watchId = navigator.geolocation.watchPosition(onSuccess, onError, {
+        enableHighAccuracy: true, timeout: 10000, maximumAge: 1000
+    });
+}
+
+function stopWatch() {
+    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    document.getElementById('watchBtn').disabled = false;
+    document.getElementById('stopBtn').disabled  = true;
+    const result = document.getElementById('locationResult');
+    result.innerHTML += '<br><span style="color:#15803d;font-size:.85rem">✅ Live watch stopped.</span>';
+}
+
+function onSuccess(pos) {
+    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+    const time = new Date(pos.timestamp).toLocaleTimeString('en-IN');
+
+    const result = document.getElementById('locationResult');
+    result.className = 'location-result loaded';
+    result.innerHTML = `
+        <div style="display:grid;gap:8px">
+            <div style="font-weight:700;color:#1d4ed8;font-size:1.05rem">✅ Location detected successfully!</div>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-top:4px">
+                <span>🌐 <strong>Lat:</strong> ${lat.toFixed(6)}</span>
+                <span>🌐 <strong>Lng:</strong> ${lng.toFixed(6)}</span>
+                <span>🎯 <strong>Accuracy:</strong> ±${Math.round(accuracy)}m</span>
+                <span>🕐 <strong>At:</strong> ${time}</span>
+            </div>
+            <div style="color:#15803d;font-weight:600;font-size:.9rem">📍 Nearest center: Whitefield E-Waste Hub, ~2.3 km away</div>
+        </div>`;
+
+    // Update coord cards
+    document.getElementById('coordsGrid').style.display = 'grid';
+    document.getElementById('coordLat').textContent  = lat.toFixed(4);
+    document.getElementById('coordLng').textContent  = lng.toFixed(4);
+    document.getElementById('coordAcc').textContent  = '±' + Math.round(accuracy);
+    document.getElementById('coordTime').textContent = time;
+
+    // Update map
+    updateMap(lat, lng);
+}
+
+function onError(err) {
+    const result = document.getElementById('locationResult');
+    result.className = 'location-result error';
+    const msgs = { 1:'Permission denied by user.', 2:'Position unavailable.', 3:'Request timed out.' };
+    result.innerHTML = `<span style="color:#ef4444">❌ ${msgs[err.code] || err.message}</span><br><span style="color:#6b7280;font-size:.85rem">Tip: Allow location access in your browser settings and try again.</span>`;
+}
+
+function updateMap(lat, lng) {
+    const map = document.getElementById('mapContainer');
+    // Open Street Map iframe embed
+    map.innerHTML = `<iframe
+        width="100%" height="100%"
+        style="border:0;border-radius:12px"
+        loading="lazy"
+        src="https://www.openstreetmap.org/export/embed.html?bbox=${lng-0.05},${lat-0.05},${lng+0.05},${lat+0.05}&layer=mapnik&marker=${lat},${lng}"
+        allowfullscreen>
+    </iframe>`;
+    map.style.height = '340px';
+    map.style.padding = '0';
+    map.style.background = 'none';
+}
+</script>
+</body>
+</html>

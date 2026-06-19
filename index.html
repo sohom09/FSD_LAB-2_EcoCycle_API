@@ -3,1617 +3,1942 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoCycle - E-Waste Collection Portal</title>
+    <title>EcoCycle – E-Waste Collection Portal</title>
+    <meta name="description" content="EcoCycle is your trusted e-waste collection portal. Schedule doorstep pickups, locate collection centers, and earn rewards for responsible recycling.">
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        html{
-            scroll-behavior:smooth;
-        }
-        @keyframes fadeIn{
-        from{
-        opacity:0;
-        transform:scale(0.9);
+        /* =============================================
+           DESIGN TOKENS & GLOBAL RESET
+        ============================================= */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --green-950: #052e16;
+            --green-900: #14532d;
+            --green-800: #166534;
+            --green-700: #15803d;
+            --green-600: #16a34a;
+            --green-500: #22c55e;
+            --green-400: #4ade80;
+            --green-100: #dcfce7;
+            --teal-400:  #2dd4bf;
+            --teal-500:  #14b8a6;
+            --emerald-400: #34d399;
+            --font: 'Inter', sans-serif;
         }
 
-        to{
-        opacity:1;
-        transform:scale(1);
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font);
+            background: #f0fdf4;
+            color: #1f2937;
+            overflow-x: hidden;
         }
 
+        /* =============================================
+           ANIMATIONS
+        ============================================= */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn{
-        animation:fadeIn .3s ease;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50%       { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-12px); }
+        }
+        @keyframes particleFloat {
+            0%   { transform: translateY(0) rotate(0deg);   opacity: .7; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50%       { background-position: 100% 50%; }
+        }
+        @keyframes shimmer {
+            from { background-position: -200% center; }
+            to   { background-position: 200% center; }
+        }
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        .animate-fadeInUp { animation: fadeInUp .6s ease both; }
+        .animate-fadeIn   { animation: fadeIn .3s ease; }
+
+        /* =============================================
+           HEADER
+        ============================================= */
+        header {
+            background: linear-gradient(135deg, var(--green-950) 0%, var(--green-800) 100%);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 24px rgba(0,0,0,.35);
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+        .nav-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--green-500), var(--teal-400));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(34,197,94,.4);
+            animation: pulse-green 3s infinite;
+        }
+        .logo-text {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -.5px;
+        }
+        .logo-text span { color: var(--green-400); }
+
+        /* Desktop Nav */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            list-style: none;
+        }
+        .nav-links a {
+            display: block;
+            padding: 8px 14px;
+            color: rgba(255,255,255,.8);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: .9rem;
+            border-radius: 8px;
+            transition: all .2s;
+        }
+        .nav-links a:hover {
+            color: white;
+            background: rgba(255,255,255,.12);
+        }
+
+        /* CTA button */
+        .btn-cta {
+            background: linear-gradient(135deg, var(--green-500), var(--teal-400));
+            color: #052e16;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: .9rem;
+            border: none;
+            cursor: pointer;
+            transition: all .25s;
+            box-shadow: 0 4px 16px rgba(34,197,94,.4);
+            white-space: nowrap;
+        }
+        .btn-cta:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 8px 24px rgba(34,197,94,.5);
+        }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 8px;
+            background: rgba(255,255,255,.1);
+            border-radius: 8px;
+            border: none;
+        }
+        .hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: white;
+            border-radius: 4px;
+            transition: all .3s;
+        }
+        .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* Mobile Nav Drawer */
+        .mobile-nav {
+            display: none;
+            background: var(--green-950);
+            border-top: 1px solid rgba(255,255,255,.08);
+            padding: 16px 24px;
+        }
+        .mobile-nav.open { display: block; }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 16px;
+            color: rgba(255,255,255,.8);
+            text-decoration: none;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all .2s;
+            margin-bottom: 4px;
+        }
+        .mobile-nav a:hover {
+            color: white;
+            background: rgba(255,255,255,.1);
+        }
+        .mobile-nav .btn-cta {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            padding: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .nav-links { display: none; }
+            .hamburger { display: flex; }
+            .nav-cta-desktop { display: none; }
+        }
+
+        /* =============================================
+           HERO SECTION
+        ============================================= */
+        #home {
+            background: linear-gradient(135deg, var(--green-950) 0%, var(--green-900) 40%, #1a4731 100%);
+            position: relative;
+            overflow: hidden;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Animated particle background */
+        .particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.15);
+            animation: particleFloat linear infinite;
+        }
+
+        /* Glowing orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+        .orb-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(34,197,94,.15), transparent 70%);
+            top: -100px; left: -100px;
+        }
+        .orb-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(20,184,166,.12), transparent 70%);
+            bottom: -80px; right: 10%;
+        }
+
+        .hero-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 80px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(34,197,94,.15);
+            border: 1px solid rgba(34,197,94,.3);
+            color: var(--green-400);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 900;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -.5px;
+        }
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--green-400), var(--teal-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            color: rgba(255,255,255,.7);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 36px;
+        }
+
+        .hero-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green-500), var(--teal-400));
+            color: var(--green-950);
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all .25s;
+            box-shadow: 0 6px 20px rgba(34,197,94,.4);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(34,197,94,.5);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,.1);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,.25);
+            transition: all .25s;
+            backdrop-filter: blur(8px);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,.18);
+            transform: translateY(-2px);
+        }
+
+        /* Hero stats */
+        .hero-stats {
+            display: flex;
+            gap: 24px;
+            margin-top: 40px;
+        }
+        .hero-stat {
+            text-align: center;
+        }
+        .hero-stat-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--green-400);
+            line-height: 1;
+        }
+        .hero-stat-label {
+            font-size: .75rem;
+            color: rgba(255,255,255,.5);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .hero-stat-divider {
+            width: 1px;
+            background: rgba(255,255,255,.12);
+            height: 40px;
+            align-self: center;
+        }
+
+        /* Hero image card */
+        .hero-img-wrap {
+            position: relative;
+        }
+        .hero-img-inner {
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,.5);
+            position: relative;
+        }
+        .hero-img-inner img {
+            width: 100%;
+            height: 420px;
+            object-fit: cover;
+            display: block;
+            transition: transform .8s ease;
+        }
+        .hero-img-inner:hover img { transform: scale(1.05); }
+        .hero-img-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(21,128,61,.2), transparent);
+        }
+
+        /* Floating badge on hero image */
+        .floating-badge {
+            position: absolute;
+            bottom: -20px;
+            left: -20px;
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: float 4s ease-in-out infinite;
+        }
+        .floating-badge-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--green-500), var(--teal-400));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        .floating-badge-text strong {
+            display: block;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--green-700);
+        }
+        .floating-badge-text span {
+            font-size: .75rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 60px 20px;
+                text-align: center;
+            }
+            .hero-btns { justify-content: center; }
+            .hero-stats { justify-content: center; }
+            .hero-img-wrap { order: -1; }
+            .floating-badge { left: 10px; bottom: -15px; }
+        }
+
+        /* =============================================
+           SECTION COMMON STYLES
+        ============================================= */
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--green-100);
+            color: var(--green-700);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: .8rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .section-heading {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: #111827;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -.3px;
+        }
+        .section-subtext {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 600px;
+        }
+
+        /* =============================================
+           ABOUT / BENEFITS
+        ============================================= */
+        #about { background: #ffffff; }
+
+        .benefit-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 20px;
+            padding: 32px 28px;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .benefit-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--green-100), transparent);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .benefit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 48px rgba(0,0,0,.1);
+            border-color: var(--green-400);
+        }
+        .benefit-card:hover::before { opacity: 1; }
+        .benefit-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .benefit-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        .benefit-text {
+            color: #6b7280;
+            font-size: .9rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =============================================
+           SERVICES
+        ============================================= */
+        #services { background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); }
+
+        .service-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid #e5e7eb;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--green-500), var(--teal-400));
+            transform: scaleX(0);
+            transition: transform .3s;
+            transform-origin: left;
+        }
+        .service-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 40px rgba(0,0,0,.1);
+        }
+        .service-card:hover::after { transform: scaleX(1); }
+
+        /* =============================================
+           IMPACT STATS
+        ============================================= */
+        .impact-section {
+            background: linear-gradient(135deg, var(--green-900), var(--green-700));
+            position: relative;
+            overflow: hidden;
+        }
+        .impact-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='3'/%3E%3C/g%3E%3C/svg%3E");
+        }
+        .stat-card {
+            text-align: center;
+            padding: 32px 20px;
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            transition: all .3s;
+        }
+        .stat-card:hover {
+            background: rgba(255,255,255,.12);
+            transform: translateY(-4px);
+        }
+        .stat-number {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            color: var(--green-400);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+        .stat-suffix {
+            font-size: 1.2rem;
+            color: var(--teal-400);
+        }
+        .stat-label {
+            color: rgba(255,255,255,.7);
+            font-size: .9rem;
+            font-weight: 500;
+        }
+
+        /* Dashboard cards (Eco Dashboard) */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,.06);
+            border: 1px solid #e5e7eb;
+            transition: all .3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.1);
+        }
+        .dashboard-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .dashboard-label {
+            font-size: .8rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        /* =============================================
+           GALLERY
+        ============================================= */
+        #gallery { background: #ffffff; }
+        .gallery-img {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,.08);
+            transition: all .4s;
+            position: relative;
+        }
+        .gallery-img img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            display: block;
+            transition: transform .5s;
+        }
+        .gallery-img:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,.15); }
+        .gallery-img:hover img { transform: scale(1.08); }
+        .gallery-img-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(5,46,22,.6), transparent);
+            opacity: 0;
+            transition: opacity .3s;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+        }
+        .gallery-img:hover .gallery-img-overlay { opacity: 1; }
+        .gallery-caption { color: white; font-weight: 600; font-size: .95rem; }
+
+        /* =============================================
+           TYPOGRAPHY ARTICLE
+        ============================================= */
+        .article-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.08);
+            padding: 48px;
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #e5e7eb;
+        }
+        @media (max-width: 600px) { .article-card { padding: 28px 20px; } }
+
+        /* =============================================
+           API DEMOS HUB
+        ============================================= */
+        #apis { background: linear-gradient(135deg, var(--green-950), #1a3a2a); }
+
+        .api-card {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 20px;
+            padding: 28px;
+            transition: all .3s;
+            text-decoration: none;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+        .api-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .api-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255,255,255,.25);
+            box-shadow: 0 16px 40px rgba(0,0,0,.3);
+        }
+        .api-card:hover::before { opacity: 1; }
+
+        .api-card-canvas:hover   { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.4); }
+        .api-card-dnd:hover      { background: rgba(249,115,22,.1); border-color: rgba(249,115,22,.4); }
+        .api-card-geo:hover      { background: rgba(59,130,246,.1); border-color: rgba(59,130,246,.4); }
+        .api-card-storage:hover  { background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.4); }
+        .api-card-file:hover     { background: rgba(236,72,153,.1); border-color: rgba(236,72,153,.4); }
+        .api-card-notify:hover   { background: rgba(245,158,11,.1); border-color: rgba(245,158,11,.4); }
+
+        .api-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin-bottom: 16px;
+        }
+        .api-card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+        .api-card-desc {
+            font-size: .85rem;
+            color: rgba(255,255,255,.55);
+            line-height: 1.5;
+        }
+        .api-card-link {
+            margin-top: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .82rem;
+            font-weight: 600;
+            color: rgba(255,255,255,.7);
+            transition: color .2s;
+        }
+        .api-card:hover .api-card-link { color: white; }
+
+        /* =============================================
+           INLINE API SECTIONS (Geo, Storage, File, etc.)
+        ============================================= */
+        .api-section-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 4px 16px rgba(0,0,0,.08);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 0;
+        }
+        .api-section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .api-section-desc {
+            color: #6b7280;
+            font-size: .95rem;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        /* Form inputs */
+        .input-styled {
+            width: 100%;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-family: var(--font);
+            font-size: .95rem;
+            color: #1f2937;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+            background: white;
+        }
+        .input-styled:focus {
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(34,197,94,.15);
+        }
+
+        /* Buttons */
+        .btn-api {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border: none;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 600;
+            font-size: .9rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-api:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.15); }
+        .btn-green   { background: var(--green-600); color: white; }
+        .btn-blue    { background: #3b82f6; color: white; }
+        .btn-purple  { background: #8b5cf6; color: white; }
+        .btn-gray    { background: #374151; color: white; }
+        .btn-pink    { background: #ec4899; color: white; }
+        .btn-red     { background: #ef4444; color: white; }
+        .btn-indigo  { background: #6366f1; color: white; }
+
+        /* Result boxes */
+        .result-box {
+            margin-top: 16px;
+            padding: 16px 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            font-size: .9rem;
+            color: #4b5563;
+            min-height: 52px;
+        }
+
+        /* Audio / Video controls */
+        audio, video { border-radius: 12px; }
+
+        /* =============================================
+           CONTACT
+        ============================================= */
+        #contact {
+            background: linear-gradient(135deg, var(--green-800), var(--green-700));
+        }
+        .contact-card {
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.15);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            backdrop-filter: blur(8px);
+            transition: all .3s;
+        }
+        .contact-card:hover {
+            background: rgba(255,255,255,.18);
+            transform: translateY(-4px);
+        }
+
+        /* =============================================
+           MODAL
+        ============================================= */
+        #pickupModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9000;
+            padding: 20px;
+        }
+        #pickupModal.open {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 36px;
+            position: relative;
+            animation: fadeIn .3s ease;
+            box-shadow: 0 24px 64px rgba(0,0,0,.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 16px; right: 16px;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+            color: #6b7280;
+        }
+        .modal-close:hover { background: #fee2e2; color: #ef4444; }
+
+        /* =============================================
+           FOOTER
+        ============================================= */
+        footer {
+            background: var(--green-950);
+            color: rgba(255,255,255,.6);
+        }
+        footer a { color: var(--green-400); text-decoration: none; transition: color .2s; }
+        footer a:hover { color: var(--green-300, #86efac); }
+
+        /* =============================================
+           NOTIFICATION BUTTON
+        ============================================= */
+        .notify-btn-wrap { text-align: center; margin-top: 32px; }
+
+        /* =============================================
+           RESPONSIVE
+        ============================================= */
+        @media (max-width: 640px) {
+            .api-section-card { padding: 20px; }
+            .article-card { padding: 24px 18px; }
         }
     </style>
 </head>
+<body>
 
-<body class="bg-gray-100 text-gray-800">
+<!-- =============================================
+     HEADER
+============================================= -->
+<header>
+    <nav class="nav-inner">
+        <div class="logo-wrap">
+            <div class="logo-icon">♻</div>
+            <div class="logo-text">Eco<span>Cycle</span></div>
+        </div>
 
-<!-- ================= HEADER ================= -->
-
-<header class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
-
-    <nav class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-
-        <h1 class="text-3xl font-bold">
-            ♻ EcoCycle
-        </h1>
-
-        <ul class="hidden md:flex gap-6 font-medium">
-
-            <li>
-                <a href="#home"
-                   class="hover:text-green-200 transition">
-                   Home
-                </a>
-            </li>
-
-            <li>
-                <a href="#about"
-                   class="hover:text-green-200 transition">
-                   About
-                </a>
-            </li>
-
-            <li>
-                <a href="#services"
-                   class="hover:text-green-200 transition">
-                   Services
-                </a>
-            </li>
-
-            <li>
-                <a href="#gallery"
-                   class="hover:text-green-200 transition">
-                   Gallery
-                </a>
-            </li>
-
-            <li>
-                <a href="#apis"
-                   class="hover:text-green-200 transition">
-                   APIs
-                </a>
-            </li>
-
-            <li>
-                <a href="#contact"
-                   class="hover:text-green-200 transition">
-                   Contact
-                </a>
-            </li>
-
+        <!-- Desktop Links -->
+        <ul class="nav-links" id="desktopNav">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#apis">APIs</a></li>
+            <li><a href="#contact">Contact</a></li>
         </ul>
 
-        <button
-        onclick="openModal()"
-        class="bg-white text-green-700 px-5 py-2 rounded-lg font-semibold hover:scale-105 hover:bg-green-100 transition duration-300">
-
-        Schedule Pickup
-
-        </button>
-
+        <div class="flex items-center gap-3">
+            <button class="btn-cta nav-cta-desktop" onclick="openModal()">📅 Schedule Pickup</button>
+            <button class="hamburger" id="hamburger" onclick="toggleMobileNav()" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
     </nav>
 
+    <!-- Mobile Nav -->
+    <div class="mobile-nav" id="mobileNav">
+        <a href="#home"    onclick="closeMobileNav()">🏠 Home</a>
+        <a href="#about"   onclick="closeMobileNav()">ℹ️ About</a>
+        <a href="#services"onclick="closeMobileNav()">🛠 Services</a>
+        <a href="#gallery" onclick="closeMobileNav()">🖼 Gallery</a>
+        <a href="#apis"    onclick="closeMobileNav()">⚡ APIs</a>
+        <a href="#contact" onclick="closeMobileNav()">📬 Contact</a>
+        <button class="btn-cta" onclick="openModal(); closeMobileNav()">📅 Schedule Pickup</button>
+    </div>
 </header>
 
-<!-- ================= HERO SECTION ================= -->
+<!-- =============================================
+     HERO SECTION
+============================================= -->
+<section id="home">
+    <!-- Particles -->
+    <div class="particles" id="particles"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
 
-<section id="home"
-class="bg-gradient-to-r from-green-700 to-emerald-500 text-white">
+    <div class="hero-inner">
+        <!-- Left: Content -->
+        <div class="animate-fadeInUp">
+            <div class="hero-badge">
+                <span style="animation: spin-slow 4s linear infinite; display:inline-block">♻️</span>
+                Sustainable E-Waste Management
+            </div>
 
-<div class="max-w-7xl mx-auto px-6 py-24 flex flex-col md:flex-row items-center gap-10">
+            <h1 class="hero-title">
+                Recycle Electronics<br>
+                <span class="highlight">Responsibly</span>
+            </h1>
 
-    <div class="flex-1">
+            <p class="hero-desc">
+                Join EcoCycle and contribute to a cleaner environment through responsible e-waste disposal and recycling. Every device counts — schedule a pickup today.
+            </p>
 
-        <h2 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+            <div class="hero-btns">
+                <button onclick="openModal()" class="btn-primary">📅 Schedule Pickup</button>
+                <a href="#about" class="btn-secondary">Learn More →</a>
+            </div>
 
-            Recycle Electronics Responsibly
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value" id="heroDevices">15K+</div>
+                    <div class="hero-stat-label">Devices Recycled</div>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">7.5K</div>
+                    <div class="hero-stat-label">Happy Users</div>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">12T</div>
+                    <div class="hero-stat-label">Waste Collected</div>
+                </div>
+            </div>
+        </div>
 
-        </h2>
+        <!-- Right: Image -->
+        <div class="hero-img-wrap animate-fadeInUp" style="animation-delay:.2s">
+            <div class="hero-img-inner">
+                <img
+                    src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"
+                    alt="Electronic waste recycling"
+                    loading="lazy">
+                <div class="hero-img-overlay"></div>
+            </div>
 
-        <p class="text-lg mb-8">
+            <div class="floating-badge">
+                <div class="floating-badge-icon">🌍</div>
+                <div class="floating-badge-text">
+                    <strong>Eco-Certified</strong>
+                    <span>ISO 14001 Compliant</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-            Join EcoCycle and contribute to a cleaner environment
-            through responsible e-waste disposal and recycling.
+<!-- =============================================
+     ABOUT SECTION
+============================================= -->
+<section id="about" class="py-24 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
 
-        </p>
+        <div class="text-center mb-16">
+            <div class="section-label">🌱 Why It Matters</div>
+            <h2 class="section-heading">Why E-Waste Recycling Matters</h2>
+            <p class="section-subtext mx-auto text-center">Electronic waste contains hazardous materials that can harm the environment if disposed improperly. Responsible recycling helps recover valuable resources while reducing pollution.</p>
+        </div>
 
-        <div class="flex flex-wrap gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-            <a href="#services"
-            class="bg-white text-green-700 px-6 py-3 rounded-lg font-semibold hover:scale-105 transition">
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0);">🌍</div>
+                <h3 class="benefit-title">Environmental Protection</h3>
+                <p class="benefit-text">Reduce pollution and protect ecosystems by keeping toxic materials like lead, mercury, and cadmium out of landfills.</p>
+            </div>
 
-            Get Started
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">🔋</div>
+                <h3 class="benefit-title">Resource Recovery</h3>
+                <p class="benefit-text">Recover precious metals like gold, silver, and copper from discarded electronics, reducing the need for mining.</p>
+            </div>
 
+            <div class="benefit-card">
+                <div class="benefit-icon" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">♻️</div>
+                <h3 class="benefit-title">Sustainable Future</h3>
+                <p class="benefit-text">Promote circular economy principles — keeping resources in use for as long as possible, then recovering and regenerating them.</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- =============================================
+     SERVICES SECTION
+============================================= -->
+<section id="services" class="py-24" style="background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);">
+    <div class="max-w-6xl mx-auto px-6">
+
+        <div class="text-center mb-16">
+            <div class="section-label">🛠 What We Offer</div>
+            <h2 class="section-heading">Our Services</h2>
+            <p class="section-subtext mx-auto text-center">From doorstep pickups to certified recycling — we make e-waste disposal effortless and rewarding.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="service-card">
+                <div class="text-4xl mb-5">🚚</div>
+                <h3 class="text-xl font-bold mb-3">Doorstep Pickup</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Schedule electronic waste pickup from your home at a time that suits you. No hassle, no travel.</p>
+                <button onclick="openModal()" class="mt-5 text-sm font-semibold text-green-600 hover:text-green-700 transition flex items-center gap-1">
+                    Schedule Now →
+                </button>
+            </div>
+
+            <div class="service-card">
+                <div class="text-4xl mb-5">📍</div>
+                <h3 class="text-xl font-bold mb-3">Collection Centers</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Locate nearby certified recycling facilities using our real-time geolocation feature.</p>
+                <a href="#geo-section" class="mt-5 text-sm font-semibold text-green-600 hover:text-green-700 transition flex items-center gap-1" style="display:inline-flex">
+                    Find Centers →
+                </a>
+            </div>
+
+            <div class="service-card">
+                <div class="text-4xl mb-5">🎁</div>
+                <h3 class="text-xl font-bold mb-3">Green Rewards</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">Earn reward points for each pickup you schedule. Redeem for vouchers, discounts, and eco-products.</p>
+                <span class="mt-5 text-sm font-semibold text-green-600" style="display:inline-block; margin-top:20px">+50 pts per pickup</span>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- =============================================
+     IMPACT STATS
+============================================= -->
+<section class="impact-section py-24">
+    <div class="max-w-6xl mx-auto px-6 relative z-10">
+
+        <div class="text-center mb-16">
+            <div class="section-label" style="background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.2)">📊 Our Track Record</div>
+            <h2 class="section-heading" style="color:white">Our Impact</h2>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="stat-card">
+                <div class="stat-number"><span id="devicesCounter">0</span><span class="stat-suffix">+</span></div>
+                <div class="stat-label">Devices Recycled</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><span id="usersCounter">0</span></div>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><span id="wasteCounter">0</span><span class="stat-suffix">T</span></div>
+                <div class="stat-label">E-Waste Collected</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><span id="carbonCounter">0</span><span class="stat-suffix">%</span></div>
+                <div class="stat-label">Carbon Reduction</div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- =============================================
+     ECO DASHBOARD
+============================================= -->
+<section class="py-20 bg-green-50">
+<div class="max-w-6xl mx-auto px-6">
+
+    <div class="text-center mb-12">
+        <div class="section-label">📈 Live Stats</div>
+        <h2 class="section-heading">Eco Dashboard</h2>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <div class="dashboard-value text-green-700" id="pickupCount">0</div>
+            <div class="dashboard-label">Total Pickups</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="dashboard-value text-blue-700" id="rewardPoints">0</div>
+            <div class="dashboard-label">Reward Points</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="dashboard-value text-purple-700">12<span style="font-size:1rem"> Tons</span></div>
+            <div class="dashboard-label">Waste Collected</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="dashboard-value text-red-700">20<span style="font-size:1rem">%</span></div>
+            <div class="dashboard-label">Carbon Saved</div>
+        </div>
+    </div>
+
+</div>
+</section>
+
+<!-- =============================================================
+     GALLERY
+============================================= -->
+<section id="gallery" class="py-24 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+
+        <div class="text-center mb-12">
+            <div class="section-label">🖼 Visual Stories</div>
+            <h2 class="section-heading">Gallery</h2>
+            <p class="section-subtext mx-auto text-center" style="margin-top:8px">Click any image to learn more about our initiatives.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="gallery-img" onclick="openGalleryModal(0)" style="cursor:pointer" role="button" aria-label="View E-Waste Collection Drive details">
+                <img src="img1.jpg" alt="E-waste collection" loading="lazy">
+                <div class="gallery-img-overlay">
+                    <span class="gallery-caption">E-Waste Collection Drive</span>
+                </div>
+            </div>
+
+            <div class="gallery-img" onclick="openGalleryModal(1)" style="cursor:pointer" role="button" aria-label="View Certified Recycling Process details">
+                <img src="img2.jpg" alt="Recycling process" loading="lazy">
+                <div class="gallery-img-overlay">
+                    <span class="gallery-caption">Certified Recycling Process</span>
+                </div>
+            </div>
+
+            <div class="gallery-img" onclick="openGalleryModal(2)" style="cursor:pointer" role="button" aria-label="View Green Initiative 2026 details">
+                <img src="img3.webp" alt="Green initiative" loading="lazy">
+                <div class="gallery-img-overlay">
+                    <span class="gallery-caption">Green Initiative 2026</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<!-- ===== GALLERY MODAL ===== -->
+<div id="galleryModal" style="
+    position:fixed; inset:0; z-index:9100;
+    background:rgba(0,0,0,.75); backdrop-filter:blur(8px);
+    display:none; align-items:center; justify-content:center;
+    padding:20px; opacity:0; transition:opacity .3s ease;
+" onclick="closeGalleryModal(event)" role="dialog" aria-modal="true" aria-label="Gallery detail">
+    <div id="galleryModalContent" style="
+        background:white; border-radius:24px; max-width:720px; width:100%;
+        max-height:90vh; overflow-y:auto; position:relative;
+        box-shadow:0 32px 80px rgba(0,0,0,.5);
+        transform:scale(.92) translateY(24px); transition:transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+        opacity:0;
+    ">
+        <!-- Close -->
+        <button onclick="closeGalleryModalDirect()" style="
+            position:absolute; top:14px; right:14px; z-index:2;
+            width:36px; height:36px; border-radius:50%; border:none;
+            background:#f3f4f6; color:#6b7280; font-size:1.1rem;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:all .2s; font-family:'Inter',sans-serif;
+        " onmouseover="this.style.background='#fee2e2';this.style.color='#ef4444'" onmouseout="this.style.background='#f3f4f6';this.style.color='#6b7280'"
+        aria-label="Close modal">✕</button>
+
+        <!-- Image -->
+        <img id="galleryModalImg" src="" alt="" style="width:100%;border-radius:24px 24px 0 0;max-height:380px;object-fit:cover;display:block">
+
+        <!-- Content -->
+        <div style="padding:28px 32px 32px">
+            <div id="galleryModalBadge" style="display:inline-block;padding:4px 14px;border-radius:50px;font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px"></div>
+            <h2 id="galleryModalTitle" style="font-size:1.6rem;font-weight:800;color:#1f2937;margin-bottom:12px;font-family:'Inter',sans-serif"></h2>
+            <p id="galleryModalDesc" style="color:#4b5563;line-height:1.75;font-size:.97rem;margin-bottom:20px;font-family:'Inter',sans-serif"></p>
+
+            <div id="galleryModalStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px"></div>
+
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button onclick="closeGalleryModalDirect()" style="
+                    padding:11px 22px; border-radius:50px; border:none;
+                    background:#16a34a; color:white; font-weight:600; font-size:.9rem;
+                    cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s;
+                " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">✅ Got It!</button>
+                <button onclick="closeGalleryModalDirect()" style="
+                    padding:11px 22px; border-radius:50px; border:2px solid #e5e7eb;
+                    background:white; color:#374151; font-weight:600; font-size:.9rem;
+                    cursor:pointer; font-family:'Inter',sans-serif; transition:all .2s;
+                " onmouseover="this.style.borderColor='#16a34a';this.style.color='#16a34a'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#374151'">← Back to Gallery</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================
+     TYPOGRAPHY / ARTICLE
+============================================= -->
+<section class="py-24 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-6">
+        <div class="article-card">
+            <div class="section-label" style="margin-bottom:16px">📖 Learn</div>
+            <h2 class="section-heading">Understanding E-Waste Recycling</h2>
+
+            <article class="space-y-5 text-gray-600 leading-8 mt-6">
+                <p>Electronic waste includes discarded electronic devices such as mobile phones, batteries, chargers, laptops and computers. These devices contain both valuable and hazardous materials.</p>
+
+                <p>Proper recycling helps recover valuable materials while reducing environmental pollution and supporting sustainability initiatives worldwide.</p>
+
+                <h3 class="text-xl font-bold text-gray-800">Benefits of E-Waste Recycling</h3>
+
+                <ul class="space-y-2 list-none">
+                    <li class="flex items-start gap-3"><span class="text-green-600 mt-1">✅</span> Reduces soil and water pollution from toxic heavy metals</li>
+                    <li class="flex items-start gap-3"><span class="text-green-600 mt-1">✅</span> Conserves natural resources through material recovery</li>
+                    <li class="flex items-start gap-3"><span class="text-green-600 mt-1">✅</span> Promotes a sustainable, circular economy</li>
+                    <li class="flex items-start gap-3"><span class="text-green-600 mt-1">✅</span> Encourages responsible consumer behaviour</li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- =============================================
+     HTML5 API HUB
+============================================= -->
+<section id="apis" class="py-24">
+    <div class="max-w-6xl mx-auto px-6">
+
+        <div class="text-center mb-16">
+            <div class="section-label" style="background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.2)">⚡ HTML5 APIs</div>
+            <h2 class="section-heading" style="color:white">HTML5 APIs Integration</h2>
+            <p style="color:rgba(255,255,255,.6); max-width:540px; margin:0 auto; font-size:1rem; line-height:1.7">Interactive features powered by modern browser APIs.</p>
+        </div>
+
+        <!-- API Cards Grid — ALL link to dedicated pages -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+
+            <a href="canvas.html" class="api-card api-card-canvas">
+                <div class="api-icon" style="background:linear-gradient(135deg,#15803d,#22c55e)">🎨</div>
+                <div class="api-card-title">Canvas API</div>
+                <div class="api-card-desc">Draw dynamic bar charts and create freehand artwork with the HTML5 Canvas 2D API.</div>
+                <div class="api-card-link">Open Canvas Demo →</div>
             </a>
 
-            <a href="#about"
-            class="border border-white px-6 py-3 rounded-lg hover:bg-white hover:text-green-700 hover:scale-105 transition">
+            <a href="dragdrop.html" class="api-card api-card-dnd">
+                <div class="api-icon" style="background:linear-gradient(135deg,#f97316,#f59e0b)">🖱️</div>
+                <div class="api-card-title">Drag &amp; Drop API</div>
+                <div class="api-card-desc">Sort e-waste items into recycling bins using the HTML5 Drag and Drop API game.</div>
+                <div class="api-card-link">Open Drag &amp; Drop Demo →</div>
+            </a>
 
-            Learn More
+            <a href="geolocation.html" class="api-card api-card-geo">
+                <div class="api-icon" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)">📍</div>
+                <div class="api-card-title">Geolocation API</div>
+                <div class="api-card-desc">Detect your location with GPS to find the nearest e-waste collection centers on a map.</div>
+                <div class="api-card-link">Open Geolocation Demo →</div>
+            </a>
 
+            <a href="localstorage.html" class="api-card api-card-storage">
+                <div class="api-icon" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6)">💾</div>
+                <div class="api-card-title">LocalStorage API</div>
+                <div class="api-card-desc">Persist pickup addresses, user profiles, and reward points in the browser — no server needed.</div>
+                <div class="api-card-link">Open LocalStorage Demo →</div>
+            </a>
+
+            <a href="fileapi.html" class="api-card api-card-file">
+                <div class="api-icon" style="background:linear-gradient(135deg,#be185d,#ec4899)">📁</div>
+                <div class="api-card-title">File API</div>
+                <div class="api-card-desc">Upload, preview and read e-waste images & documents locally using the HTML5 FileReader API.</div>
+                <div class="api-card-link">Open File API Demo →</div>
+            </a>
+
+            <a href="audio.html" class="api-card" style="background:linear-gradient(135deg,#312e81,#6366f1);text-decoration:none;display:flex;flex-direction:column;border-radius:20px;padding:28px;transition:all .3s;border:1px solid rgba(255,255,255,.1)">
+                <div class="api-icon" style="background:linear-gradient(135deg,#4338ca,#6366f1)">🎵</div>
+                <div class="api-card-title">Audio API</div>
+                <div class="api-card-desc">Custom audio player with EQ visualizer, seek, speed, mute — fully built with HTMLAudioElement.</div>
+                <div class="api-card-link">Open Audio Demo →</div>
+            </a>
+
+            <a href="video.html" class="api-card" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);text-decoration:none;display:flex;flex-direction:column;border-radius:20px;padding:28px;transition:all .3s;border:1px solid rgba(255,255,255,.1)">
+                <div class="api-icon" style="background:linear-gradient(135deg,#b91c1c,#ef4444)">🎥</div>
+                <div class="api-card-title">Video API</div>
+                <div class="api-card-desc">Custom video player with PiP, fullscreen, frame capture — built on the HTMLVideoElement API.</div>
+                <div class="api-card-link">Open Video Demo →</div>
+            </a>
+
+            <a href="clipboard.html" class="api-card" style="background:linear-gradient(135deg,#500724,#be185d);text-decoration:none;display:flex;flex-direction:column;border-radius:20px;padding:28px;transition:all .3s;border:1px solid rgba(255,255,255,.1)">
+                <div class="api-icon" style="background:linear-gradient(135deg,#9d174d,#ec4899)">📋</div>
+                <div class="api-card-title">Clipboard API</div>
+                <div class="api-card-desc">Copy templates, paste content, track clipboard history — Async Clipboard API in action.</div>
+                <div class="api-card-link">Open Clipboard Demo →</div>
+            </a>
+
+            <a href="notifications.html" class="api-card api-card-notify">
+                <div class="api-icon" style="background:linear-gradient(135deg,#78350f,#f59e0b)">🔔</div>
+                <div class="api-card-title">Notifications API</div>
+                <div class="api-card-desc">Request permission and fire browser push notifications for pickup reminders and eco alerts.</div>
+                <div class="api-card-link">Open Notifications Demo →</div>
+            </a>
+
+            <a href="websocket.html" class="api-card" style="background:linear-gradient(135deg,#083344,#0891b2);text-decoration:none;display:flex;flex-direction:column;border-radius:20px;padding:28px;transition:all .3s;border:1px solid rgba(255,255,255,.1)">
+                <div class="api-icon" style="background:linear-gradient(135deg,#0e7490,#06b6d4)">🔌</div>
+                <div class="api-card-title">WebSocket API</div>
+                <div class="api-card-desc">Real-time chat with EcoCycle support bot and live pickup feed — powered by WebSocket API.</div>
+                <div class="api-card-link" style="color:rgba(255,255,255,.8);font-weight:700;font-size:.82rem;margin-top:auto;padding-top:16px">Open WebSocket Demo → <span style="background:rgba(255,255,255,.2);border-radius:50px;padding:2px 8px;font-size:.7rem;margin-left:4px">NEW</span></div>
             </a>
 
         </div>
 
     </div>
+</section>
 
-    <div class="flex-1 overflow-hidden rounded-2xl shadow-2xl">
+<!-- =============================================================
+     QUICK API SNAPSHOT
+============================================= -->
+<div style="background:white;padding:48px 0 64px">
+<div class="max-w-5xl mx-auto px-6">
 
-        <img
-        src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80"
+    <div class="text-center" style="margin-bottom:36px">
+        <div class="section-label">🔬 Quick Demos</div>
+        <h2 class="section-heading">Try APIs Inline</h2>
+        <p class="section-subtext mx-auto text-center">Quick demos right here. For the full experience, click any card in the API Hub above.</p>
+    </div>
 
-        class="w-full hover:scale-110 transition duration-700"
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px">
 
-        alt="E-Waste">
+        <!-- Geolocation -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#2563eb">📍 Geolocation API</div>
+            <p class="api-section-desc">Detect your position to find the nearest e-waste center.</p>
+            <button onclick="getLocation()" class="btn-api btn-blue" style="margin-bottom:12px">🎯 Get My Location</button>
+            <div id="locationResult" class="result-box">Location will appear here...</div>
+            <a href="geolocation.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#2563eb;font-weight:600">Open Full Demo →</a>
+        </div>
+
+        <!-- LocalStorage -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#7c3aed">💾 Local Storage API</div>
+            <p class="api-section-desc">Persist your pickup address in the browser.</p>
+            <input type="text" id="pickupAddress" placeholder="Enter Pickup Address" class="input-styled mb-4" style="margin-bottom:12px">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <button onclick="saveAddress()" class="btn-api btn-purple">💾 Save</button>
+                <button onclick="loadAddress()" class="btn-api btn-gray">📂 Load</button>
+            </div>
+            <div id="savedAddress" class="result-box" style="margin-top:12px">Saved address will appear here.</div>
+            <a href="localstorage.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#7c3aed;font-weight:600">Open Full Demo →</a>
+        </div>
+
+        <!-- File API -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#9d174d">📁 File API</div>
+            <p class="api-section-desc">Upload an image of your e-waste item and preview it.</p>
+            <label style="display:flex;flex-direction:column;align-items:center;gap:8px;border:2px dashed #fbcfe8;border-radius:12px;padding:20px;cursor:pointer;background:#fdf2f8;margin-bottom:12px">
+                <span style="font-size:1.8rem">📤</span>
+                <span style="font-weight:600;color:#9d174d;font-size:.9rem">Click to upload image</span>
+                <input type="file" id="fileInput" accept="image/*" onchange="previewImage(event)" style="display:none">
+            </label>
+            <img id="imagePreview" style="display:none;width:100%;border-radius:10px;max-height:180px;object-fit:cover">
+            <a href="fileapi.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#9d174d;font-weight:600">Open Full Demo →</a>
+        </div>
+
+        <!-- Audio API -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#4338ca">🎵 Audio API</div>
+            <p class="api-section-desc">Native audio controls for our eco-awareness track.</p>
+            <audio id="ecoAudio" controls style="width:100%;border-radius:10px;margin-bottom:12px">
+                <source src="audio.mp3" type="audio/mpeg">
+            </audio>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button onclick="playAudio()"  class="btn-api btn-green" style="padding:8px 16px">▶</button>
+                <button onclick="pauseAudio()" class="btn-api btn-red"   style="padding:8px 16px">⏸</button>
+                <button onclick="muteAudio()"  class="btn-api btn-gray"  style="padding:8px 16px">🔇</button>
+            </div>
+            <a href="audio.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#4338ca;font-weight:600">Open Custom Player →</a>
+        </div>
+
+        <!-- Video API -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#b91c1c">🎥 Video API</div>
+            <p class="api-section-desc">E-waste awareness video with playback controls.</p>
+            <video id="ecoVideo" controls style="width:100%;border-radius:10px;margin-bottom:12px;max-height:200px">
+                <source src="video.mp4" type="video/mp4">
+            </video>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button onclick="playVideo()"       class="btn-api btn-green"  style="padding:8px 14px">▶</button>
+                <button onclick="pauseVideo()"      class="btn-api btn-red"    style="padding:8px 14px">⏸</button>
+                <button onclick="fullscreenVideo()" class="btn-api btn-purple" style="padding:8px 14px">⛶</button>
+            </div>
+            <a href="video.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#b91c1c;font-weight:600">Open Custom Player →</a>
+        </div>
+
+        <!-- Clipboard API -->
+        <div class="api-section-card">
+            <div class="api-section-title" style="color:#9d174d">📋 Clipboard API</div>
+            <p class="api-section-desc">Copy pickup info to clipboard with one click.</p>
+            <input type="text" id="copyText" value="EcoCycle Pickup Request Confirmed!" class="input-styled" style="margin-bottom:12px">
+            <button onclick="copyPickupText()" class="btn-api btn-pink">📋 Copy Text</button>
+            <div id="copyStatus" class="result-box" style="margin-top:12px;min-height:36px"></div>
+            <a href="clipboard.html" style="display:inline-block;margin-top:10px;font-size:.82rem;color:#9d174d;font-weight:600">Open Full Demo →</a>
+        </div>
 
     </div>
 
 </div>
-
-</section>
-
-<!-- ================= ABOUT SECTION ================= -->
-
-<section id="about" class="py-20">
-
-<div class="max-w-6xl mx-auto px-6">
-
-    <h2 class="text-4xl font-bold text-center mb-8">
-
-        Why E-Waste Recycling Matters
-
-    </h2>
-
-    <p class="text-center text-gray-600 max-w-4xl mx-auto">
-
-        Electronic waste contains hazardous materials that can harm
-        the environment if disposed improperly. Responsible recycling
-        helps recover valuable resources while reducing pollution.
-
-    </p>
-
 </div>
 
-</section>
-
-<!-- ================= BENEFITS SECTION ================= -->
-
-<section class="pb-20">
-
-<div class="max-w-6xl mx-auto px-6">
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
-
-        <div class="text-5xl mb-4">🌍</div>
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            Environmental Protection
-
-        </h3>
-
-        <p>
-
-            Reduce pollution and protect ecosystems through
-            responsible disposal practices.
-
-        </p>
-
-    </div>
-
-    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
-
-        <div class="text-5xl mb-4">🔋</div>
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            Resource Recovery
-
-        </h3>
-
-        <p>
-
-            Recover metals and reusable materials from
-            discarded electronics.
-
-        </p>
-
-    </div>
-
-    <div class="bg-white p-8 rounded-xl shadow-lg hover:-translate-y-2 hover:shadow-2xl transition">
-
-        <div class="text-5xl mb-4">♻️</div>
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            Sustainable Future
-
-        </h3>
-
-        <p>
-
-            Promote environmental sustainability and
-            responsible consumption.
-
-        </p>
-
-    </div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= SERVICES ================= -->
-
-<section id="services" class="bg-white py-20">
-
-<div class="max-w-6xl mx-auto px-6">
-
-<h2 class="text-4xl font-bold text-center mb-12">
-
-Our Services
-
-</h2>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            🚚 Doorstep Pickup
-
-        </h3>
-
-        <p>
-
-            Schedule electronic waste pickup from your home.
-
-        </p>
-
-    </div>
-
-    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            📍 Collection Centers
-
-        </h3>
-
-        <p>
-
-            Locate nearby certified recycling facilities.
-
-        </p>
-
-    </div>
-
-    <div class="bg-green-50 p-8 rounded-xl shadow hover:shadow-xl transition">
-
-        <h3 class="text-2xl font-semibold mb-3">
-
-            🎁 Green Rewards
-
-        </h3>
-
-        <p>
-
-            Earn rewards for participating in recycling drives.
-
-        </p>
-
-    </div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= IMPACT STATS ================= -->
-
-<section class="py-20">
-
-<div class="max-w-6xl mx-auto px-6">
-
-<h2 class="text-4xl font-bold text-center mb-12">
-
-Our Impact
-
-</h2>
-
-<div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-
-            <h3 id="devicesCounter" class="text-4xl font-bold text-green-700">0</h3>
-        <p>Devices Recycled</p>
-
-        <h3 id="usersCounter" class="text-4xl font-bold text-green-700">0</h3>
-        <p>Users</p>
-
-        <h3 id="wasteCounter" class="text-4xl font-bold text-green-700">0</h3>
-        <p>E-Waste Collected</p>
-
-        <h3 id="carbonCounter" class="text-4xl font-bold text-green-700">0</h3>
-        <p>Carbon Reduction</p>
-
-</div>
-
-</div>
-
-</section>
-<section class="py-20 bg-green-50">
-
-<div class="max-w-6xl mx-auto px-6">
-
-<h2 class="text-4xl font-bold text-center mb-12">
-Eco Dashboard
-</h2>
-
-<div class="grid md:grid-cols-4 gap-6">
-
-<div class="bg-white p-6 rounded-xl shadow text-center">
-<h3 class="text-3xl font-bold text-green-700" id="pickupCount">0</h3>
-<p>Total Pickups</p>
-</div>
-
-<div class="bg-white p-6 rounded-xl shadow text-center">
-<h3 class="text-3xl font-bold text-blue-700" id="rewardPoints">0</h3>
-<p>Reward Points</p>
-</div>
-
-<div class="bg-white p-6 rounded-xl shadow text-center">
-<h3 class="text-3xl font-bold text-purple-700">12 Tons</h3>
-<p>Waste Collected</p>
-</div>
-
-<div class="bg-white p-6 rounded-xl shadow text-center">
-<h3 class="text-3xl font-bold text-red-700">20%</h3>
-<p>Carbon Saved</p>
-</div>
-
-</div>
-
-</div>
-
-</section>
-<!-- ================= GALLERY ================= -->
-
-<section id="gallery" class="bg-white py-20">
-
-<div class="max-w-6xl mx-auto px-6">
-
-<h2 class="text-4xl font-bold text-center mb-12">
-
-Gallery
-
-</h2>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-<img
-src="img1.jpg"
-class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
-
-<img
-src="img2.jpg"
-class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
-
-<img
-src="img3.webp"
-class="rounded-xl shadow-lg hover:scale-105 transition duration-500">
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= TYPOGRAPHY SECTION ================= -->
-
-<section class="py-20 bg-gray-50">
-
-<div class="max-w-4xl mx-auto px-6">
-
-<div class="bg-white rounded-2xl shadow-lg p-8 md:p-12">
-
-<h2 class="text-4xl font-bold text-center mb-8">
-
-Understanding E-Waste Recycling
-
-</h2>
-
-<article class="space-y-6 text-gray-700 leading-8">
-
-<p>
-Electronic waste includes discarded electronic devices such as
-mobile phones, batteries, chargers, laptops and computers.
-</p>
-
-<p>
-Proper recycling helps recover valuable materials while reducing
-environmental pollution and supporting sustainability initiatives.
-</p>
-
-<h3 class="text-2xl font-semibold">
-Benefits of E-Waste Recycling
-</h3>
-
-<ul class="list-disc pl-6">
-<li>Reduces pollution</li>
-<li>Conserves natural resources</li>
-<li>Promotes sustainability</li>
-<li>Encourages responsible disposal</li>
-</ul>
-
-</article>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ================= HTML5 APIs START HERE ================= -->
-
-<section id="apis" class="py-20 bg-green-700 text-white">
-
-<div class="max-w-6xl mx-auto text-center">
-
-<h2 class="text-5xl font-bold">
-
-HTML5 APIs Integration
-
-</h2>
-
-<p class="mt-4">
-
-Interactive Features Added
-
-</p>
-
-</div>
-<button
-onclick="sendNotification()"
-class="bg-purple-700 text-white px-6 py-3 rounded-lg">
-
-Enable Notifications
-
-</button>
-</section>
-<!-- ===================================================== -->
-<!-- 1. GEOLOCATION API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-white">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-gray-50 rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-green-700 mb-4">
-📍 Geolocation API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Find your current location and locate nearby e-waste collection centers.
-</p>
-
-<button
-onclick="getLocation()"
-class="bg-green-700 text-white px-6 py-3 rounded-lg hover:scale-105 transition">
-
-Get My Location
-
-</button>
-
-<div id="locationResult"
-class="mt-6 p-4 bg-white rounded-lg shadow">
-Location will appear here...
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 2. LOCAL STORAGE API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-gray-100">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-white rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-blue-700 mb-4">
-💾 Local Storage API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Save your pickup address locally in the browser.
-</p>
-
-<input
-type="text"
-id="pickupAddress"
-placeholder="Enter Pickup Address"
-class="w-full border p-3 rounded-lg mb-4">
-
-<div class="flex flex-wrap gap-4">
-
-<button
-onclick="saveAddress()"
-class="bg-blue-600 text-white px-6 py-3 rounded-lg">
-
-Save Address
-
-</button>
-
-<button
-onclick="loadAddress()"
-class="bg-gray-700 text-white px-6 py-3 rounded-lg">
-
-Load Address
-
-</button>
-
-</div>
-
-<div
-id="savedAddress"
-class="mt-5 p-4 bg-gray-50 rounded-lg">
-
-Saved address will appear here.
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 3. FILE API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-white">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-gray-50 rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-purple-700 mb-4">
-📁 File API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Upload an image of your electronic waste item.
-</p>
-
-<input
-type="file"
-id="fileInput"
-accept="image/*"
-onchange="previewImage(event)"
-class="mb-6">
-
-<div>
-
-<img
-id="imagePreview"
-class="rounded-xl shadow-lg max-h-96 hidden">
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 4. CANVAS API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-gray-100">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-white rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-green-700 mb-4">
-🎨 Canvas API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Drawing the EcoCycle logo using HTML5 Canvas.
-</p>
-
-<canvas
-id="ecoCanvas"
-width="700"
-height="250"
-class="border rounded-lg bg-white">
-</canvas>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 5. DRAG AND DROP API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-white">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-gray-50 rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-orange-700 mb-4">
-🖱️ Drag and Drop API
-</h2>
-
-<p class="mb-8 text-gray-600">
-Drag electronic items into the recycling bin.
-</p>
-
-<div class="flex flex-wrap gap-6 mb-8">
-
-<div
-id="mobile"
-draggable="true"
-ondragstart="drag(event)"
-class="bg-blue-500 text-white px-6 py-4 rounded-lg cursor-move">
-
-📱 Mobile Phone
-
-</div>
-
-<div
-id="battery"
-draggable="true"
-ondragstart="drag(event)"
-class="bg-red-500 text-white px-6 py-4 rounded-lg cursor-move">
-
-🔋 Battery
-
-</div>
-
-<div
-id="laptop"
-draggable="true"
-ondragstart="drag(event)"
-class="bg-green-500 text-white px-6 py-4 rounded-lg cursor-move">
-
-💻 Laptop
-
-</div>
-
-</div>
-
-<div
-id="dropZone"
-ondrop="drop(event)"
-ondragover="allowDrop(event)"
-class="border-4 border-dashed border-green-600 rounded-xl p-12 text-center text-xl bg-green-50">
-
-♻️ Drop Items Here
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 6. AUDIO API -->
-<!-- ===================================================== -->
-
-<!-- AUDIO API -->
-
-<section class="py-20 bg-gray-100">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-white rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-indigo-700 mb-4">
-🎵 Audio API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Learn about sustainable recycling and effective e waste disposal through audio content.
-</p>
-
-<audio
-id="ecoAudio"
-controls
-class="w-full mb-6">
-
-<source
-src="audio.mp3"
-type="audio/mpeg">
-
-</audio>
-
-<div class="flex flex-wrap gap-4">
-
-<button
-onclick="playAudio()"
-class="bg-green-600 text-white px-5 py-2 rounded">
-
-Play
-
-</button>
-
-<button
-onclick="pauseAudio()"
-class="bg-red-600 text-white px-5 py-2 rounded">
-
-Pause
-
-</button>
-
-<button
-onclick="muteAudio()"
-class="bg-gray-700 text-white px-5 py-2 rounded">
-
-Mute
-
-</button>
-
-<button
-onclick="unmuteAudio()"
-class="bg-blue-600 text-white px-5 py-2 rounded">
-
-Unmute
-
-</button>
-
-</div>
-
-<div class="mt-6">
-
-<label class="font-semibold">
-Volume Control
-</label>
-
-<input
-type="range"
-min="0"
-max="1"
-step="0.1"
-value="1"
-oninput="changeVolume(this.value)"
-class="w-full">
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!-- 7. VIDEO API -->
-<!-- ===================================================== -->
-<!-- VIDEO API -->
-
-<section class="py-20 bg-white">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-gray-50 rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-red-700 mb-4">
-🎥 Video API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Watch an awareness video about recycling, effective disposal of E-Waste and sustainability.
-</p>
-
-<video
-id="ecoVideo"
-controls
-class="rounded-xl shadow-lg w-full mb-6">
-
-<source
-src="video.mp4"
-type="video/mp4">
-
-</video>
-
-<div class="flex flex-wrap gap-4">
-
-<button
-onclick="playVideo()"
-class="bg-green-600 text-white px-5 py-2 rounded">
-
-Play
-
-</button>
-
-<button
-onclick="pauseVideo()"
-class="bg-red-600 text-white px-5 py-2 rounded">
-
-Pause
-
-</button>
-
-<button
-onclick="fullscreenVideo()"
-class="bg-purple-600 text-white px-5 py-2 rounded">
-
-Fullscreen
-
-</button>
-
-<button
-onclick="restartVideo()"
-class="bg-orange-600 text-white px-5 py-2 rounded">
-
-Restart
-
-</button>
-
-</div>
-
-<div class="mt-6">
-
-<label class="font-semibold">
-
-Playback Speed
-
-</label>
-
-<select
-onchange="changeSpeed(this.value)"
-class="border p-2 rounded">
-
-<option value="0.5">0.5x</option>
-<option value="1" selected>1x</option>
-<option value="1.5">1.5x</option>
-<option value="2">2x</option>
-
-</select>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ===================================================== -->
-<!--  CLIPBOARD API -->
-<!-- ===================================================== -->
-
-<section class="py-20 bg-gray-100">
-
-<div class="max-w-5xl mx-auto px-6">
-
-<div class="bg-white rounded-xl shadow-lg p-8">
-
-<h2 class="text-3xl font-bold text-pink-700 mb-4">
-📋 Clipboard API
-</h2>
-
-<p class="mb-6 text-gray-600">
-Copy pickup information with one click and paste as you like.
-</p>
-
-<input
-type="text"
-id="copyText"
-value="EcoCycle Pickup Request Submitted Successfully"
-class="w-full border p-3 rounded-lg mb-4">
-
-<button
-onclick="copyPickupText()"
-class="bg-pink-600 text-white px-6 py-3 rounded-lg">
-
-Copy Text
-
-</button>
-
-<div
-id="copyStatus"
-class="mt-4 text-green-700 font-semibold">
-</div>
-
-</div>
-
-</div>
-
-</section>
-<!-- ===================================================== -->
-<!-- CONTACT SECTION -->
-<!-- ===================================================== -->
-
-<section id="contact" class="py-20 bg-green-700 text-white">
-
+<!-- =============================================
+     CONTACT
+============================================= -->
+<section id="contact" class="py-24">
 <div class="max-w-5xl mx-auto px-6 text-center">
 
-<h2 class="text-4xl font-bold mb-6">
+    <div class="section-label" style="background:rgba(255,255,255,.1); color:white; border:1px solid rgba(255,255,255,.2); margin-bottom:16px">📬 Get in Touch</div>
+    <h2 class="section-heading" style="color:white; margin-bottom:16px">Contact EcoCycle</h2>
+    <p class="text-lg mb-12" style="color:rgba(255,255,255,.7)">Join our mission to make e-waste disposal safer and more sustainable for everyone.</p>
 
-Contact EcoCycle
-
-</h2>
-
-<p class="text-lg mb-8">
-
-Join our mission to make e-waste disposal safer and more sustainable.
-
-</p>
-
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-<div class="bg-green-600 p-6 rounded-xl shadow-lg">
-<h3 class="text-2xl font-semibold mb-2">📧 Email</h3>
-<p>support@ecocycle.com</p>
-</div>
-
-<div class="bg-green-600 p-6 rounded-xl shadow-lg">
-<h3 class="text-2xl font-semibold mb-2">📞 Phone</h3>
-<p>+91 9876543210</p>
-</div>
-
-<div class="bg-green-600 p-6 rounded-xl shadow-lg">
-<h3 class="text-2xl font-semibold mb-2">📍 Location</h3>
-<p>Bangalore, India</p>
-</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="contact-card">
+            <div class="text-3xl mb-3">📧</div>
+            <h3 class="text-xl font-bold text-white mb-2">Email</h3>
+            <p style="color:rgba(255,255,255,.7)">support@ecocycle.com</p>
+        </div>
+        <div class="contact-card">
+            <div class="text-3xl mb-3">📞</div>
+            <h3 class="text-xl font-bold text-white mb-2">Phone</h3>
+            <p style="color:rgba(255,255,255,.7)">+91 9876543210</p>
+        </div>
+        <div class="contact-card">
+            <div class="text-3xl mb-3">📍</div>
+            <h3 class="text-xl font-bold text-white mb-2">Location</h3>
+            <p style="color:rgba(255,255,255,.7)">Bangalore, India</p>
+        </div>
+    </div>
 
 </div>
-
-</div>
-
 </section>
-<!-- ==========================================
-     SCHEDULE PICKUP MODAL
-========================================== -->
 
-<div
-id="pickupModal"
-class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-
-<div
-class="bg-white rounded-2xl shadow-2xl w-11/12 md:w-1/2 lg:w-1/3 p-8 relative animate-fadeIn">
-
-<button
-onclick="closeModal()"
-class="absolute top-3 right-4 text-2xl font-bold text-gray-500 hover:text-red-600">
-
-&times;
-
-</button>
-
-<h2 class="text-3xl font-bold text-green-700 mb-6 text-center">
-
-♻ Schedule E-Waste Pickup
-
-</h2>
-
-<form id="pickupForm" class="space-y-4">
-
-<input
-type="text"
-placeholder="Full Name"
-class="w-full border p-3 rounded-lg">
-
-<input
-type="email"
-placeholder="Email Address"
-class="w-full border p-3 rounded-lg">
-
-<input
-type="tel"
-placeholder="Phone Number"
-class="w-full border p-3 rounded-lg">
-
-<input
-type="date"
-class="w-full border p-3 rounded-lg">
-
-<select
-class="w-full border p-3 rounded-lg">
-
-<option>Select E-Waste Type</option>
-<option>Mobile Phone</option>
-<option>Laptop</option>
-<option>Battery</option>
-<option>Computer Accessories</option>
-<option>Mixed Electronics</option>
-
-</select>
-
-<textarea
-rows="4"
-placeholder="Pickup Address"
-class="w-full border p-3 rounded-lg">
-</textarea>
-
-<button
-type="button"
-onclick="submitPickup()"
-class="w-full bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition">
-
-Submit Pickup Request
-
-</button>
-
-</form>
-
-</div>
-
-</div>
+<!-- =============================================
+     RECENT ACTIVITIES
+============================================= -->
 <section class="py-20 bg-white">
-
 <div class="max-w-6xl mx-auto px-6">
 
-<h2 class="text-4xl font-bold text-center mb-12">
+    <h2 class="section-heading text-center mb-10">Recent Activities</h2>
 
-Recent Activities
-
-</h2>
-
-<div id="activityLog"
-class="bg-gray-50 p-8 rounded-xl shadow">
-
-No activities yet.
+    <div id="activityLog" class="bg-gray-50 p-8 rounded-2xl border border-gray-200 min-h-16 text-gray-500">
+        No activities yet — schedule your first pickup!
+    </div>
 
 </div>
-
-</div>
-
 </section>
-<!-- ===================================================== -->
-<!-- FOOTER -->
-<!-- ===================================================== -->
 
-<footer class="bg-gray-900 text-white py-10">
-
+<!-- =============================================
+     FOOTER
+============================================= -->
+<footer class="py-12">
 <div class="max-w-6xl mx-auto px-6">
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-    <!-- Logo and About -->
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="logo-icon" style="width:36px;height:36px;font-size:1.1rem">♻</div>
+                <span class="text-xl font-bold text-white">EcoCycle</span>
+            </div>
+            <p style="color:rgba(255,255,255,.45); font-size:.9rem; line-height:1.7">Promoting sustainable e-waste management through technology, awareness, and responsible recycling practices.</p>
+        </div>
 
-    <div>
+        <div>
+            <h3 class="text-lg font-semibold text-white mb-4">Quick Links</h3>
+            <ul class="space-y-2" style="color:rgba(255,255,255,.5); font-size:.9rem">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#apis">HTML5 APIs</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
 
-        <h3 class="text-2xl font-bold mb-4">
-            ♻ EcoCycle
-        </h3>
-
-        <p class="text-gray-400">
-            Promoting sustainable e-waste management through technology,
-            awareness, and responsible recycling practices.
-        </p>
-
-    </div>
-
-    <!-- Quick Links -->
-
-    <div>
-
-        <h3 class="text-xl font-semibold mb-4">
-            Quick Links
-        </h3>
-
-        <ul class="space-y-2 text-gray-400">
-
-            <li>
-                <a href="#home" class="hover:text-white transition">
-                    Home
-                </a>
-            </li>
-
-            <li>
-                <a href="#about" class="hover:text-white transition">
-                    About
-                </a>
-            </li>
-
-            <li>
-                <a href="#services" class="hover:text-white transition">
-                    Services
-                </a>
-            </li>
-
-            <li>
-                <a href="#gallery" class="hover:text-white transition">
-                    Gallery
-                </a>
-            </li>
-
-            <li>
-                <a href="#apis" class="hover:text-white transition">
-                    HTML5 APIs
-                </a>
-            </li>
-
-            <li>
-                <a href="#contact" class="hover:text-white transition">
-                    Contact
-                </a>
-            </li>
-
-        </ul>
+        <div>
+            <h3 class="text-lg font-semibold text-white mb-4">API Demo Pages</h3>
+            <ul class="space-y-2" style="color:rgba(255,255,255,.5); font-size:.9rem">
+                <li><a href="canvas.html">🎨 Canvas API Demo</a></li>
+                <li><a href="dragdrop.html">🖱️ Drag & Drop Demo</a></li>
+            </ul>
+            <div class="mt-6" style="color:rgba(255,255,255,.4); font-size:.8rem">
+                <p>📧 ecocycle@example.com</p>
+                <p class="mt-1">📞 +91 98765 43210</p>
+                <p class="mt-1">📍 Bangalore, India</p>
+            </div>
+        </div>
 
     </div>
 
-    <!-- Contact -->
+    <hr style="border-color:rgba(255,255,255,.08); margin: 32px 0">
 
-    <div>
-
-        <h3 class="text-xl font-semibold mb-4">
-            Contact
-        </h3>
-
-        <p class="text-gray-400">
-            📧 ecocycle@example.com
-        </p>
-
-        <p class="text-gray-400 mt-2">
-            📞 +91 98765 43210
-        </p>
-
-        <p class="text-gray-400 mt-2">
-            📍 Bangalore, India
-        </p>
-
+    <div class="text-center" style="color:rgba(255,255,255,.3); font-size:.82rem">
+        © 2026 EcoCycle | E-Waste Collection Portal | Built with HTML5, Tailwind CSS, HTML5 APIs & JavaScript
     </div>
 
 </div>
-
-<hr class="border-gray-700 my-8">
-
-<div class="text-center text-gray-500">
-
-    © 2026 EcoCycle | E-Waste Collection Portal | Developed using HTML5, Tailwind CSS, HTML5 APIs, Javascript
-
-</div>
-
-</div>
-
 </footer>
 
-<!-- ===================================================== -->
-<!-- JAVASCRIPT SECTION -->
-<!-- ===================================================== -->
+<!-- =============================================
+     SCHEDULE PICKUP MODAL
+============================================= -->
+<div id="pickupModal">
+    <div class="modal-content">
+        <button onclick="closeModal()" class="modal-close" aria-label="Close">✕</button>
 
+        <div class="text-center mb-6">
+            <div class="logo-icon" style="margin:0 auto 12px; width:52px; height:52px; font-size:1.6rem">♻</div>
+            <h2 class="text-2xl font-bold text-green-700">Schedule E-Waste Pickup</h2>
+            <p class="text-gray-500 text-sm mt-1">Fill in your details and we'll take care of the rest</p>
+        </div>
+
+        <form id="pickupForm" class="space-y-4">
+            <input type="text"   placeholder="Full Name"       class="input-styled">
+            <input type="email"  placeholder="Email Address"   class="input-styled">
+            <input type="tel"    placeholder="Phone Number"    class="input-styled">
+            <input type="date"   class="input-styled">
+
+            <select class="input-styled">
+                <option value="">Select E-Waste Type</option>
+                <option>Mobile Phone</option>
+                <option>Laptop</option>
+                <option>Battery</option>
+                <option>Computer Accessories</option>
+                <option>Mixed Electronics</option>
+            </select>
+
+            <textarea rows="3" placeholder="Pickup Address" class="input-styled" style="resize:vertical"></textarea>
+
+            <button type="button" onclick="submitPickup()" class="btn-primary w-full" style="display:block;text-align:center;padding:14px">
+                ✅ Submit Pickup Request
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- =============================================
+     JAVASCRIPT
+============================================= -->
 <script>
+/* =============================================
+   MOBILE NAV
+============================================= */
+function toggleMobileNav() {
+    const nav = document.getElementById('mobileNav');
+    const btn = document.getElementById('hamburger');
+    nav.classList.toggle('open');
+    btn.classList.toggle('open');
+}
+function closeMobileNav() {
+    document.getElementById('mobileNav').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+}
 
-/* ==========================================
+/* =============================================
+   HERO PARTICLES
+============================================= */
+(function createParticles() {
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = Math.random() * 60 + 20;
+        p.style.cssText = `
+            width: ${size}px;
+            height: ${size}px;
+            left: ${Math.random() * 100}%;
+            bottom: ${Math.random() * -20}%;
+            animation-duration: ${Math.random() * 15 + 10}s;
+            animation-delay: ${Math.random() * 8}s;
+        `;
+        container.appendChild(p);
+    }
+})();
+
+/* =============================================
+   COUNTER ANIMATION (Intersection Observer)
+============================================= */
+function animateCounter(id, target, suffix) {
+    const el  = document.getElementById(id);
+    if (!el) return;
+    let count = 0;
+    const step = target / 80;
+    const interval = setInterval(() => {
+        count = Math.min(count + step, target);
+        el.innerText = Math.floor(count).toLocaleString();
+        if (count >= target) clearInterval(interval);
+    }, 18);
+}
+
+// Trigger on scroll
+const counterSection = document.querySelector('.impact-section');
+let countersStarted = false;
+const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && !countersStarted) {
+        countersStarted = true;
+        animateCounter('devicesCounter', 15000);
+        animateCounter('usersCounter',   7500);
+        animateCounter('wasteCounter',   12);
+        animateCounter('carbonCounter',  20);
+    }
+}, { threshold: 0.3 });
+if (counterSection) observer.observe(counterSection);
+
+/* =============================================
    GEOLOCATION API
-========================================== */
-
-function getLocation(){
-
-    const output = document.getElementById("locationResult");
-
-    if(navigator.geolocation){
-
+============================================= */
+function getLocation() {
+    const output = document.getElementById('locationResult');
+    output.innerHTML = '<span style="color:#6b7280">📡 Detecting your location...</span>';
+    if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-
-            function(position){
-
+            function(pos) {
                 output.innerHTML = `
-                <strong>Latitude:</strong> ${position.coords.latitude}<br>
-                <strong>Longitude:</strong> ${position.coords.longitude}
-                `;
-
+                    <div style="display:grid;gap:6px">
+                        <div>🌐 <strong>Latitude:</strong> ${pos.coords.latitude.toFixed(6)}</div>
+                        <div>🌐 <strong>Longitude:</strong> ${pos.coords.longitude.toFixed(6)}</div>
+                        <div>🎯 <strong>Accuracy:</strong> ±${Math.round(pos.coords.accuracy)} meters</div>
+                        <div style="margin-top:8px;color:#16a34a;font-weight:600">✅ Nearest center: Whitefield E-Waste Hub, 2.3 km away</div>
+                    </div>`;
             },
-
-            function(){
-
-                output.innerHTML =
-                "Unable to retrieve location.";
+            function(err) {
+                output.innerHTML = `<span style="color:#ef4444">❌ Unable to retrieve location: ${err.message}</span>`;
             }
-
         );
-
+    } else {
+        output.innerHTML = '<span style="color:#ef4444">❌ Geolocation not supported by your browser.</span>';
     }
-
-    else{
-
-        output.innerHTML =
-        "Geolocation not supported.";
-
-    }
-
 }
 
-/* ==========================================
+/* =============================================
    LOCAL STORAGE API
-========================================== */
-
-function saveAddress(){
-
-    const address =
-    document.getElementById("pickupAddress").value;
-
-    localStorage.setItem(
-        "pickupAddress",
-        address
-    );
-
-    alert("Address Saved Successfully!");
-
+============================================= */
+function saveAddress() {
+    const address = document.getElementById('pickupAddress').value.trim();
+    if (!address) { alert('Please enter an address first!'); return; }
+    localStorage.setItem('pickupAddress', address);
+    const el = document.getElementById('savedAddress');
+    el.innerHTML = '<span style="color:#16a34a;font-weight:600">✅ Address saved successfully!</span>';
+    setTimeout(() => { el.innerHTML = `<strong>Saved:</strong> ${address}`; }, 1500);
 }
 
-function loadAddress(){
-
-    const saved =
-    localStorage.getItem("pickupAddress");
-
-    document.getElementById(
-        "savedAddress"
-    ).innerHTML =
-    saved || "No address saved.";
-
+function loadAddress() {
+    const saved = localStorage.getItem('pickupAddress');
+    document.getElementById('savedAddress').innerHTML =
+        saved
+        ? `<strong>📍 Saved Address:</strong> ${saved}`
+        : '<span style="color:#9ca3af">No address found in storage.</span>';
 }
 
-/* ==========================================
-   FILE API
-========================================== */
-
-function previewImage(event){
-
-    const file =
-    event.target.files[0];
-
-    if(file){
-
-        const reader =
-        new FileReader();
-
-        reader.onload =
-        function(e){
-
-            const img =
-            document.getElementById(
-                "imagePreview"
-            );
-
-            img.src =
-            e.target.result;
-
-            img.classList.remove(
-                "hidden"
-            );
-
-        };
-
-        reader.readAsDataURL(file);
-
-    }
-
-}
-
-/* ==========================================
-   CANVAS API
-========================================== */
-
-window.onload = function(){
-
-    const canvas =
-    document.getElementById(
-        "ecoCanvas"
-    );
-
-    const ctx =
-    canvas.getContext("2d");
-
-    /* Green Circle */
-
-    ctx.beginPath();
-
-    ctx.arc(
-        120,
-        120,
-        70,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fillStyle =
-    "#16a34a";
-
-    ctx.fill();
-
-    /* White Recycling Symbol */
-
-    ctx.fillStyle =
-    "white";
-
-    ctx.font =
-    "50px Arial";
-
-    ctx.fillText(
-        "♻",
-        95,
-        140
-    );
-
-    /* EcoCycle Text */
-
-    ctx.fillStyle =
-    "#166534";
-
-    ctx.font =
-    "bold 40px Arial";
-
-    ctx.fillText(
-        "EcoCycle",
-        240,
-        135
-    );
-
-};
-
-/* ==========================================
-   DRAG AND DROP API
-========================================== */
-
-function allowDrop(event){
-
-    event.preventDefault();
-
-}
-
-function drag(event){
-
-    event.dataTransfer.setData(
-        "text",
-        event.target.id
-    );
-
-}
-
-function drop(event){
-
-    event.preventDefault();
-
-    const data =
-    event.dataTransfer.getData(
-        "text"
-    );
-
-    const item =
-    document.getElementById(
-        data
-    );
-
-    event.target.appendChild(
-        item
-    );
-
-}
-
-/* ==========================================
-   CLIPBOARD API
-========================================== */
-
-function copyPickupText(){
-
-    const text =
-    document.getElementById(
-        "copyText"
-    ).value;
-
-    navigator.clipboard
-    .writeText(text)
-    .then(function(){
-
-        document.getElementById(
-            "copyStatus"
-        ).innerHTML =
-        "✔ Text copied successfully!";
-
-    });
-
-}
-/* ==========================================
-   MODAL FUNCTIONS
-========================================== */
-
-function openModal(){
-
-document
-.getElementById("pickupModal")
-.classList.remove("hidden");
-
-document
-.getElementById("pickupModal")
-.classList.add("flex");
-
-}
-
-function closeModal(){
-
-document
-.getElementById("pickupModal")
-.classList.add("hidden");
-
-document
-.getElementById("pickupModal")
-.classList.remove("flex");
-
-}
-
-function submitPickup(){
-
-let pickups=
-localStorage.getItem("pickups");
-
-pickups=pickups?parseInt(pickups):0;
-
-pickups++;
-
-localStorage.setItem("pickups",pickups);
-
-document.getElementById(
-"activityLog"
-).innerHTML+=
-"<p>✔ Pickup Scheduled Successfully</p>";
-let points=
-localStorage.getItem("points");
-
-points=points?parseInt(points):0;
-
-points+=50;
-
-localStorage.setItem("points",points);
-
-document.getElementById("rewardPoints").innerText=points;
-
-alert(
-"Pickup Scheduled Successfully!\nReward Points +50"
-);
-
-closeModal();
-
-}
-/* ==========================================
-   AUDIO API FUNCTIONS
-========================================== */
-
-const audio =
-document.getElementById("ecoAudio");
-
-function playAudio(){
-audio.play();
-}
-
-function pauseAudio(){
-audio.pause();
-}
-
-function muteAudio(){
-audio.muted = true;
-}
-
-function unmuteAudio(){
-audio.muted = false;
-}
-
-function changeVolume(value){
-audio.volume = value;
-}
-
-/* ==========================================
-   VIDEO API FUNCTIONS
-========================================== */
-
-const video =
-document.getElementById("ecoVideo");
-
-function playVideo(){
-video.play();
-}
-
-function pauseVideo(){
-video.pause();
-}
-
-function restartVideo(){
-
-video.currentTime = 0;
-video.play();
-
-}
-
-function fullscreenVideo(){
-
-if(video.requestFullscreen){
-
-video.requestFullscreen();
-
-}
-
-}
-
-function changeSpeed(speed){
-
-video.playbackRate = speed;
-
-}
-function animateCounter(id,target){
-
-let count=0;
-
-const element=document.getElementById(id);
-
-const speed=target/100;
-
-const interval=setInterval(()=>{
-
-count+=speed;
-
-if(count>=target){
-count=target;
-clearInterval(interval);
-}
-
-element.innerText=Math.floor(count);
-
-},20);
-
-}
-
-animateCounter("devicesCounter",15000);
-animateCounter("usersCounter",7500);
-animateCounter("wasteCounter",12);
-animateCounter("carbonCounter",20);
-function sendNotification(){
-
-if(Notification.permission==="granted"){
-
-new Notification(
-"EcoCycle Pickup Reminder"
-);
-
-}
-
-else{
-
-Notification.requestPermission()
-.then(permission=>{
-
-if(permission==="granted"){
-
-new Notification(
-"Notifications Enabled"
-);
-
-}
-
+// Load saved data on page open
+window.addEventListener('load', function() {
+    const points  = parseInt(localStorage.getItem('points')  || '0');
+    const pickups = parseInt(localStorage.getItem('pickups') || '0');
+    document.getElementById('rewardPoints').innerText = points;
+    document.getElementById('pickupCount').innerText  = pickups;
 });
 
+/* =============================================
+   FILE API
+============================================= */
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('imagePreview');
+            img.src = e.target.result;
+            img.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
+/* =============================================
+   MODAL
+============================================= */
+function openModal()  {
+    document.getElementById('pickupModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
+function closeModal() {
+    document.getElementById('pickupModal').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.getElementById('pickupModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+function submitPickup() {
+    let pickups = parseInt(localStorage.getItem('pickups') || '0') + 1;
+    let points  = parseInt(localStorage.getItem('points')  || '0') + 50;
+
+    localStorage.setItem('pickups', pickups);
+    localStorage.setItem('points',  points);
+
+    document.getElementById('pickupCount').innerText  = pickups;
+    document.getElementById('rewardPoints').innerText = points;
+
+    const log = document.getElementById('activityLog');
+    const now = new Date().toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+    log.innerHTML = `<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #e5e7eb">
+        <span style="color:#16a34a;font-size:1.2rem">✅</span>
+        <div><strong>Pickup Scheduled</strong> — <span style="color:#6b7280;font-size:.85rem">${now}</span><br>
+        <span style="font-size:.85rem;color:#16a34a">+50 reward points earned</span></div>
+    </div>` + log.innerHTML;
+
+    alert('Pickup Scheduled Successfully!\n🎉 You earned 50 Reward Points!');
+    closeModal();
+}
+
+/* =============================================
+   AUDIO API
+============================================= */
+const audio = document.getElementById('ecoAudio');
+function playAudio()          { audio.play(); }
+function pauseAudio()         { audio.pause(); }
+function muteAudio()          { audio.muted = true; }
+function unmuteAudio()        { audio.muted = false; }
+function changeVolume(value)  { audio.volume = parseFloat(value); }
+
+/* =============================================
+   VIDEO API
+============================================= */
+const video = document.getElementById('ecoVideo');
+function playVideo()          { video.play(); }
+function pauseVideo()         { video.pause(); }
+function restartVideo()       { video.currentTime = 0; video.play(); }
+function fullscreenVideo()    { if (video.requestFullscreen) video.requestFullscreen(); }
+function changeSpeed(speed)   { video.playbackRate = parseFloat(speed); }
+
+/* =============================================
+   CLIPBOARD API
+============================================= */
+function copyPickupText() {
+    const text = document.getElementById('copyText').value;
+    navigator.clipboard.writeText(text).then(function() {
+        const el = document.getElementById('copyStatus');
+        el.innerHTML = '<span style="color:#16a34a;font-weight:600">✅ Text copied to clipboard!</span>';
+        setTimeout(() => { el.innerHTML = ''; }, 3000);
+    }).catch(function() {
+        document.getElementById('copyStatus').innerHTML =
+            '<span style="color:#ef4444">❌ Copy failed. Please try manually.</span>';
+    });
+}
+
+/* =============================================
+   GALLERY MODAL
+============================================= */
+const galleryData = [
+    {
+        src:   'img1.jpg',
+        title: 'E-Waste Collection Drive',
+        badge: '♻️ Community Event',
+        badgeColor: '#dcfce7', badgeText: '#15803d',
+        desc:  'Our community e-waste collection drives bring together residents, schools, and businesses to safely dispose of old electronics. Trained volunteers help categorise items, from smartphones and laptops to printers and cables. Every device collected prevents hazardous materials like lead, mercury, and cadmium from entering landfills. Join our next drive and earn 100 EcoCycle reward points!',
+        stats: [
+            { val: '2.4T',  lbl: 'E-Waste Collected' },
+            { val: '850+',  lbl: 'Participants' },
+            { val: '100%',  lbl: 'Responsibly Recycled' },
+        ]
+    },
+    {
+        src:   'img2.jpg',
+        title: 'Certified Recycling Process',
+        badge: '✅ ISO Certified',
+        badgeColor: '#dbeafe', badgeText: '#1d4ed8',
+        desc:  'EcoCycle partners with ISO 14001 certified recycling facilities in Bangalore. Each device undergoes a rigorous 5-step process: Intake → Secure Data Destruction → Manual Disassembly → Material Segregation → Safe Disposal or Refurbishment. Valuable metals like gold, silver, copper, and palladium are extracted and reused in new products, reducing the need for raw mining.',
+        stats: [
+            { val: '5',     lbl: 'Process Steps' },
+            { val: '98%',   lbl: 'Material Recovery' },
+            { val: 'ISO',   lbl: '14001 Certified' },
+        ]
+    },
+    {
+        src:   'img3.webp',
+        title: 'Green Initiative 2026',
+        badge: '🌱 Sustainability',
+        badgeColor: '#dcfce7', badgeText: '#166534',
+        desc:  'Our 2026 Green Initiative targets a 40% reduction in e-waste going to landfills across Bangalore. This includes expanding collection centers to 25 new locations, partnering with 500+ corporate offices for in-office pickup programs, launching a school e-literacy campaign reaching 10,000 students, and planting 1,000 trees for every 10 tonnes of e-waste processed.',
+        stats: [
+            { val: '40%',   lbl: 'Landfill Reduction Target' },
+            { val: '25',    lbl: 'New Centers' },
+            { val: '1000',  lbl: 'Trees Planted' },
+        ]
+    },
+];
+
+function openGalleryModal(idx) {
+    const d   = galleryData[idx];
+    const m   = document.getElementById('galleryModal');
+    const mc  = document.getElementById('galleryModalContent');
+
+    document.getElementById('galleryModalImg').src     = d.src;
+    document.getElementById('galleryModalImg').alt     = d.title;
+    document.getElementById('galleryModalTitle').textContent = d.title;
+    document.getElementById('galleryModalDesc').textContent  = d.desc;
+
+    const badge = document.getElementById('galleryModalBadge');
+    badge.textContent       = d.badge;
+    badge.style.background  = d.badgeColor;
+    badge.style.color       = d.badgeText;
+
+    const statsEl = document.getElementById('galleryModalStats');
+    statsEl.innerHTML = d.stats.map(s => `
+        <div style="text-align:center;padding:14px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb">
+            <div style="font-size:1.4rem;font-weight:800;color:#15803d">${s.val}</div>
+            <div style="font-size:.75rem;color:#6b7280;margin-top:3px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">${s.lbl}</div>
+        </div>`).join('');
+
+    m.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    // Animate in
+    requestAnimationFrame(() => {
+        m.style.opacity  = '1';
+        mc.style.opacity = '1';
+        mc.style.transform = 'scale(1) translateY(0)';
+    });
+}
+
+function closeGalleryModal(e) {
+    if (e.target === document.getElementById('galleryModal')) closeGalleryModalDirect();
+}
+
+function closeGalleryModalDirect() {
+    const m  = document.getElementById('galleryModal');
+    const mc = document.getElementById('galleryModalContent');
+    m.style.opacity  = '0';
+    mc.style.opacity = '0';
+    mc.style.transform = 'scale(.92) translateY(24px)';
+    setTimeout(() => {
+        m.style.display = 'none';
+        document.body.style.overflow = '';
+    }, 320);
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeGalleryModalDirect();
+});
 </script>
 
 </body>
